@@ -8,8 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: nemesisjs
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -24,17 +22,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd nemesisjs
           bun install --no-cache
 
       - name: Build packages
         run: |
-          cd nemesisjs
           bun run build
 
       - name: Publish Packages
         run: |
-          cd nemesisjs
           for pkg in packages/*; do
             if [ -d "$pkg" ] && [ -f "$pkg/package.json" ]; then
               echo "Publishing $pkg"
