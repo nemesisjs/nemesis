@@ -84,7 +84,7 @@ export class PipelineExecutor {
       await this.executeGuards(guards, ctx, moduleRef);
 
       // 2. Resolve parameters and apply pipes
-      const args = await this.resolveParameters(ctx, paramMetadata, pipes, moduleRef);
+      const args = await this.resolveParameters(ctx, paramMetadata, pipes, moduleRef, context);
 
       // 3. Build the handler function (wrapped by interceptors)
       const handler = async (): Promise<unknown> => {
@@ -166,6 +166,7 @@ export class PipelineExecutor {
     paramMetadata: RouteParamMetadata[],
     pipes: Type<PipeTransform>[],
     moduleRef: ModuleRef,
+    context: PipelineContext,
   ): Promise<unknown[]> {
     if (paramMetadata.length === 0) {
       // If no parameter decorators, pass the RequestContext as first arg
@@ -182,12 +183,12 @@ export class PipelineExecutor {
 
       // Apply parameter-specific pipes
       if (param.pipes && param.pipes.length > 0) {
-        value = await this.applyPipes(value, param, param.pipes, moduleRef);
+        value = await this.applyPipes(value, param, param.pipes, moduleRef, context);
       }
 
       // Apply method-level pipes
       if (pipes.length > 0) {
-        value = await this.applyPipes(value, param, pipes, moduleRef);
+        value = await this.applyPipes(value, param, pipes, moduleRef, context);
       }
 
       args[param.index] = value;
@@ -251,13 +252,18 @@ export class PipelineExecutor {
     param: RouteParamMetadata,
     pipeClasses: Type<PipeTransform>[],
     moduleRef: ModuleRef,
+    context: PipelineContext,
   ): Promise<unknown> {
     let result: unknown = value;
     for (const PipeClass of pipeClasses) {
       const pipe = this.resolveFromContainer<PipeTransform>(PipeClass, moduleRef);
       result = await pipe.transform(result, {
         type: param.type,
+        metatype: param.metatype,
         data: param.data,
+        target: (context.controllerInstance as any).constructor as Type<unknown>,
+        methodKey: context.methodKey,
+        parameterIndex: param.index,
       });
     }
     return result;

@@ -20,10 +20,16 @@ function createParamDecorator(type: ParamType) {
     return (target: Object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
       if (propertyKey === undefined) return;
       const constructor = (target as { constructor: Type<unknown> }).constructor;
+      
+      // Attempt to infer the parameter metatype via TypeScript reflection:
+      const paramTypes = (Reflect as any).getMetadata('design:paramtypes', target, propertyKey);
+      const metatype = paramTypes ? paramTypes[parameterIndex] : undefined;
+
       MetadataStorage.setRouteParam(constructor, propertyKey, {
         type,
         index: parameterIndex,
         data,
+        metatype,
         pipes: pipes.length > 0 ? pipes : undefined,
       });
     };

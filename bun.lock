@@ -9,7 +9,7 @@
         "typescript": "^5.7.0",
       },
     },
-    "packages/cli": {
+    "../cli": {
       "name": "@nemesisjs/cli",
       "version": "0.1.0",
       "bin": {
@@ -19,6 +19,50 @@
         "@nemesisjs/common": "workspace:*",
       },
       "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "../validation": {
+      "name": "nemesisjs-validation",
+      "version": "1.0.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+        "@nemesisjs/core": "workspace:*",
+        "reflect-metadata": "^0.2.1",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.0",
+        "typescript": "^5.0.0",
+        "valibot": "^0.30.0",
+        "zod": "^3.22.4",
+      },
+      "peerDependencies": {
+        "class-transformer": "*",
+        "class-validator": "*",
+        "valibot": "*",
+        "zod": "*",
+      },
+      "optionalPeers": [
+        "class-transformer",
+        "class-validator",
+        "valibot",
+        "zod",
+      ],
+    },
+    "examples/hello-world": {
+      "name": "hello-world-example",
+      "version": "0.1.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+        "@nemesisjs/core": "workspace:*",
+        "@nemesisjs/http": "workspace:*",
+        "@nemesisjs/platform-bun": "workspace:*",
+      },
+      "devDependencies": {
+        "@nemesisjs/testing": "workspace:*",
         "@types/bun": "latest",
         "typescript": "^5.7.0",
       },
@@ -83,7 +127,7 @@
     },
   },
   "packages": {
-    "@nemesisjs/cli": ["@nemesisjs/cli@workspace:packages/cli"],
+    "@nemesisjs/cli": ["@nemesisjs/cli@workspace:../cli"],
 
     "@nemesisjs/common": ["@nemesisjs/common@workspace:packages/common"],
 
@@ -99,10 +143,30 @@
 
     "@types/node": ["@types/node@25.3.5", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-oX8xrhvpiyRCQkG1MFchB09f+cXftgIXb3a7UUa4Y3wpmZPw5tyZGTLWhlESOLq1Rq6oDlc8npVU2/9xiCuXMA=="],
 
+    "@types/validator": ["@types/validator@13.15.10", "", {}, "sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA=="],
+
     "bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
+
+    "class-transformer": ["class-transformer@0.5.1", "", {}, "sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw=="],
+
+    "class-validator": ["class-validator@0.14.4", "", { "dependencies": { "@types/validator": "^13.15.3", "libphonenumber-js": "^1.11.1", "validator": "^13.15.22" } }, "sha512-AwNusCCam51q703dW82x95tOqQp6oC9HNUl724KxJJOfnKscI8dOloXFgyez7LbTTKWuRBA37FScqVbJEoq8Yw=="],
+
+    "hello-world-example": ["hello-world-example@workspace:examples/hello-world"],
+
+    "libphonenumber-js": ["libphonenumber-js@1.12.38", "", {}, "sha512-vwzxmasAy9hZigxtqTbFEwp8ZdZ975TiqVDwj5bKx5sR+zi5ucUQy9mbVTkKM9GzqdLdxux/hTw2nmN5J7POMA=="],
+
+    "nemesisjs-validation": ["nemesisjs-validation@workspace:../validation"],
+
+    "reflect-metadata": ["reflect-metadata@0.2.2", "", {}, "sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "undici-types": ["undici-types@7.18.2", "", {}, "sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w=="],
+
+    "valibot": ["valibot@0.30.0", "", {}, "sha512-5POBdbSkM+3nvJ6ZlyQHsggisfRtyT4tVTo1EIIShs6qCdXJnyWU5TJ68vr8iTg5zpOLjXLRiBqNx+9zwZz/rA=="],
+
+    "validator": ["validator@13.15.26", "", {}, "sha512-spH26xU080ydGggxRyR1Yhcbgx+j3y5jbNXk/8L+iRvdIEQ4uTRH2Sgf2dokud6Q4oAtsbNvJ1Ft+9xmm6IZcA=="],
+
+    "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
   }
 }

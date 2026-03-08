@@ -2,7 +2,12 @@
   "name": "nemesisjs-monorepo",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["packages/*", "examples/*"],
+  "workspaces": [
+    "packages/*",
+    "examples/*",
+    "../validation",
+    "../cli"
+  ],
   "scripts": {
     "build": "bun run build:common && bun run build:core && bun run build:platform-bun && bun run build:http && bun run build:testing && bun run build:cli",
     "build:common": "cd packages/common && bun run build",

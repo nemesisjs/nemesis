@@ -109,6 +109,9 @@ export interface ArgumentMetadata {
   type: ParamType;
   metatype?: Type<unknown>;
   data?: string;
+  target?: Type<unknown>;
+  methodKey?: string | symbol;
+  parameterIndex?: number;
 }
 
 export interface PipeTransform<T = unknown, R = unknown> {
@@ -161,6 +164,7 @@ export interface RouteParamMetadata {
   type: ParamType;
   index: number;
   data?: string;
+  metatype?: Type<unknown>;
   pipes?: Type<PipeTransform>[];
 }
 
