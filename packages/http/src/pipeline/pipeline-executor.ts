@@ -178,9 +178,15 @@ export class PipelineExecutor {
       return [ctx];
     }
 
+    // Determine total parameter count from the handler function signature
+    const instance = context.controllerInstance as ControllerInstance;
+    const totalParams = instance[context.methodKey].length;
+
     // Sort by index to ensure correct parameter order
     const sorted = [...paramMetadata].sort((a, b) => a.index - b.index);
-    const maxIndex = Math.max(...sorted.map((p) => p.index));
+
+    // Size the args array to fit all handler parameters (not just decorated ones)
+    const maxIndex = Math.max(totalParams - 1, ...sorted.map((p) => p.index));
     const args: unknown[] = new Array(maxIndex + 1).fill(undefined);
 
     for (const param of sorted) {
@@ -202,6 +208,15 @@ export class PipelineExecutor {
       }
 
       args[param.index] = value;
+    }
+
+    // Fill any un-decorated parameter slots with the RequestContext.
+    // This allows handlers to declare `ctx: RequestContext` at any position
+    // without requiring an explicit @Req() decorator.
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === undefined) {
+        args[i] = ctx;
+      }
     }
 
     return args;

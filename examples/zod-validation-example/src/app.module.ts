@@ -8,8 +8,6 @@ import { AppService } from './app.service.js';
     ValidationModule.forRoot({ adapter: 'zod' }),
   ],
   controllers: [AppController],
-  providers: [
-    { provide: 'AppService', useClass: AppService },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}

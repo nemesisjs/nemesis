@@ -5,6 +5,7 @@
  */
 
 import type { HttpMethod, ParamType, Scope, LogLevel } from '../constants.js';
+import type { ILogger } from '../logger/logger.interface.js';
 
 // ─── Utility Types ───────────────────────────────────────────────────────────
 
@@ -187,7 +188,7 @@ export interface ApplicationOptions {
   /** Global prefix for all routes */
   globalPrefix?: string;
   /** Logger configuration */
-  logger?: boolean | LogLevel[] | import('../logger/logger.interface.js').ILogger;
+  logger?: boolean | LogLevel[] | ILogger;
 }
 
 export interface CorsOptions {

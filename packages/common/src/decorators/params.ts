@@ -21,8 +21,12 @@ function createParamDecorator(type: ParamType) {
       if (propertyKey === undefined) return;
       const constructor = (target as { constructor: Type<unknown> }).constructor;
       
-      // Attempt to infer the parameter metatype via TypeScript reflection:
-      const paramTypes = (Reflect as any).getMetadata('design:paramtypes', target, propertyKey);
+      // Attempt to infer the parameter metatype via TypeScript reflection (only available
+      // when reflect-metadata is loaded with emitDecoratorMetadata: true).
+      const paramTypes =
+        typeof (Reflect as any).getMetadata === 'function'
+          ? (Reflect as any).getMetadata('design:paramtypes', target, propertyKey)
+          : undefined;
       const metatype = paramTypes ? paramTypes[parameterIndex] : undefined;
 
       MetadataStorage.setRouteParam(constructor, propertyKey, {

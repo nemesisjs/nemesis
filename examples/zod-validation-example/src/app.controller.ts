@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Inject } from '@nemesisjs/common';
 import { UseSchema } from '@nemesisjs/validation';
 import type { RequestContext } from '@nemesisjs/http';
-import type { AppService } from './app.service.js';
+import { AppService } from './app.service.js';
 import { z } from 'zod';
 
 const createUserSchema = z.object({
@@ -14,7 +14,7 @@ type CreateUserDto = z.infer<typeof createUserSchema>;
 
 @Controller('/')
 export class AppController {
-  constructor(@Inject('AppService') private readonly appService: AppService) {}
+  constructor(@Inject(AppService) private readonly appService: AppService) {}
 
   @Get('/')
   getHello(ctx: RequestContext) {

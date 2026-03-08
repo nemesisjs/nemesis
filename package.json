@@ -20,10 +20,18 @@
     "test:e2e": "bun test tests/e2e/",
     "clean": "rm -rf packages/*/dist",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "dev:example": "cd examples/hello-world && bun run dev"
+    "lint": "eslint 'packages/**/*.ts' 'examples/**/*.ts'",
+    "lint:fix": "eslint 'packages/**/*.ts' 'examples/**/*.ts' --fix",
+    "format": "prettier --write 'packages/**/*.ts' 'examples/**/*.ts' '*.json' '*.md'",
+    "format:check": "prettier --check 'packages/**/*.ts' 'examples/**/*.ts'"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/bun": "latest"
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@types/bun": "latest",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.7.0"
   }
 }

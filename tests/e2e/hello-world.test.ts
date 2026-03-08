@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { createHttpApp } from '@nemesisjs/http';
 import { TestClient } from '@nemesisjs/testing';
-
-// Import the hello-world app module
-import { AppModule } from '../../examples/hello-world/src/app.module';
+import { AppModule } from '../../examples/hello-world/src/app.module.js';
 
 describe('Hello World E2E', () => {
   let client: TestClient;
@@ -47,6 +45,20 @@ describe('Hello World E2E', () => {
     });
   });
 
+  describe('POST /users', () => {
+    it('should create a new user', async () => {
+      const res = await client.post('/users', {
+        name: 'Charlie',
+        email: 'charlie@example.com',
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.name).toBe('Charlie');
+      expect(body.email).toBe('charlie@example.com');
+      expect(body.id).toBeDefined();
+    });
+  });
+
   describe('GET /users/:id', () => {
     it('should return a specific user', async () => {
       const res = await client.get('/users/1');
@@ -59,20 +71,6 @@ describe('Hello World E2E', () => {
     it('should return 404 for non-existent user', async () => {
       const res = await client.get('/users/999');
       expect(res.status).toBe(404);
-    });
-  });
-
-  describe('POST /users', () => {
-    it('should create a new user', async () => {
-      const res = await client.post('/users', {
-        name: 'Charlie',
-        email: 'charlie@example.com',
-      });
-      expect(res.status).toBe(201);
-      const body = await res.json();
-      expect(body.name).toBe('Charlie');
-      expect(body.email).toBe('charlie@example.com');
-      expect(body.id).toBeDefined();
     });
   });
 

@@ -1,12 +1,10 @@
 import { Module } from '@nemesisjs/common';
-import { ValidationModule } from '@nemesisjs/validation';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { UserModule } from './user/user.module.js';
 
 @Module({
-  imports: [
-    ValidationModule.forRoot({ adapter: 'valibot' }),
-  ],
+  imports: [UserModule],
   controllers: [AppController],
   providers: [AppService],
 })
