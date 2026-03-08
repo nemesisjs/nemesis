@@ -10,30 +10,18 @@ import {
   joinPaths,
   colorize,
   type Type,
-  type ILogger,
 } from '@nemesisjs/common';
-import type { ModuleRef } from '@nemesisjs/core';
+import type { ModuleRef, NemesisApplicationInterface } from '@nemesisjs/core';
 import { RequestContext } from '@nemesisjs/platform-bun';
 import { HttpRouter, type RouteHandler } from './router.js';
 import { PipelineExecutor } from '../pipeline/pipeline-executor.js';
 
 export class RouteCollector {
-  private readonly router: HttpRouter;
-  private readonly pipeline: PipelineExecutor;
-  private readonly globalPrefix: string;
-  private readonly logger?: ILogger;
-
   constructor(
-    router: HttpRouter,
-    pipeline: PipelineExecutor,
-    globalPrefix: string = '',
-    logger?: ILogger,
-  ) {
-    this.router = router;
-    this.pipeline = pipeline;
-    this.globalPrefix = globalPrefix;
-    this.logger = logger;
-  }
+    private readonly router: HttpRouter,
+    private readonly pipeline: PipelineExecutor,
+    private readonly app: NemesisApplicationInterface,
+  ) {}
 
   /**
    * Scan all modules and register controller routes.
@@ -74,7 +62,7 @@ export class RouteCollector {
 
     for (const [propertyKey, routeMeta] of routes) {
       // Build full path: globalPrefix + controllerPrefix + routePath
-      const fullPath = joinPaths(this.globalPrefix, prefix, routeMeta.path);
+      const fullPath = joinPaths(this.app.getGlobalPrefix?.() ?? '', prefix, routeMeta.path);
 
       // Get method-level guards/pipes/interceptors
       const methodGuards = MetadataStorage.getMethodGuards(controllerClass, propertyKey);
@@ -101,6 +89,7 @@ export class RouteCollector {
           methodKey: propertyKey as string,
           guards,
           pipes,
+          globalPipes: this.app.getGlobalPipes(),
           interceptors,
           paramMetadata,
           moduleRef,
@@ -119,11 +108,12 @@ export class RouteCollector {
       });
 
       // Log the mapped route beautifully: [RouterExplorer] Mapped {/users, GET} route
-      if (this.logger?.log) {
+      const logger = this.app.getLogger?.();
+      if (logger?.log) {
         const methodColor = this.getMethodColor(routeMeta.method);
         const coloredMethod = colorize(routeMeta.method, methodColor);
         const coloredPath = colorize(fullPath === '' ? '/' : fullPath, 'brightCyan');
-        this.logger.log(`Mapped {${coloredPath}, ${coloredMethod}} route`, 'RouterExplorer');
+        logger.log(`Mapped {${coloredPath}, ${coloredMethod}} route`, 'RouterExplorer');
       }
     }
   }

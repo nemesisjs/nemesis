@@ -45,6 +45,8 @@ export interface PipelineContext {
   paramMetadata: RouteParamMetadata[];
   /** The module reference, used for DI resolution of guards/pipes/interceptors */
   moduleRef: ModuleRef;
+  /** Global pipe instances */
+  globalPipes?: PipeTransform[];
 }
 
 // ─── Helper Types ─────────────────────────────────────────────────────────────
@@ -77,6 +79,7 @@ export class PipelineExecutor {
       interceptors,
       paramMetadata,
       moduleRef,
+      globalPipes = [],
     } = context;
 
     try {
@@ -84,7 +87,7 @@ export class PipelineExecutor {
       await this.executeGuards(guards, ctx, moduleRef);
 
       // 2. Resolve parameters and apply pipes
-      const args = await this.resolveParameters(ctx, paramMetadata, pipes, moduleRef, context);
+      const args = await this.resolveParameters(ctx, paramMetadata, pipes, globalPipes, moduleRef, context);
 
       // 3. Build the handler function (wrapped by interceptors)
       const handler = async (): Promise<unknown> => {
@@ -158,6 +161,7 @@ export class PipelineExecutor {
    * @param {RequestContext} ctx - The current request context
    * @param {RouteParamMetadata[]} paramMetadata - Registered parameter decorators
    * @param {Type<PipeTransform>[]} pipes - Method-level pipe classes
+   * @param {PipeTransform[]} globalPipes - Global pipe instances
    * @param {ModuleRef} moduleRef - Module for DI resolution
    * @returns {Promise<unknown[]>} Resolved and transformed argument array
    */
@@ -165,6 +169,7 @@ export class PipelineExecutor {
     ctx: RequestContext,
     paramMetadata: RouteParamMetadata[],
     pipes: Type<PipeTransform>[],
+    globalPipes: PipeTransform[],
     moduleRef: ModuleRef,
     context: PipelineContext,
   ): Promise<unknown[]> {
@@ -181,14 +186,19 @@ export class PipelineExecutor {
     for (const param of sorted) {
       let value: unknown = await this.extractParamValue(ctx, param);
 
-      // Apply parameter-specific pipes
-      if (param.pipes && param.pipes.length > 0) {
-        value = await this.applyPipes(value, param, param.pipes, moduleRef, context);
+      // Apply global pipe instances
+      if (globalPipes && globalPipes.length > 0) {
+        value = await this.applyPipeInstances(value, param, globalPipes, context);
       }
 
-      // Apply method-level pipes
+      // Apply class & method-level pipe classes
       if (pipes.length > 0) {
         value = await this.applyPipes(value, param, pipes, moduleRef, context);
+      }
+
+      // Apply parameter-specific pipe classes
+      if (param.pipes && param.pipes.length > 0) {
+        value = await this.applyPipes(value, param, param.pipes, moduleRef, context);
       }
 
       args[param.index] = value;
@@ -257,6 +267,35 @@ export class PipelineExecutor {
     let result: unknown = value;
     for (const PipeClass of pipeClasses) {
       const pipe = this.resolveFromContainer<PipeTransform>(PipeClass, moduleRef);
+      result = await pipe.transform(result, {
+        type: param.type,
+        metatype: param.metatype,
+        data: param.data,
+        target: (context.controllerInstance as any).constructor as Type<unknown>,
+        methodKey: context.methodKey,
+        parameterIndex: param.index,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Apply a series of pipe instances to a parameter value.
+   *
+   * @param {unknown} value - The raw parameter value
+   * @param {RouteParamMetadata} param - The parameter descriptor (for metadata)
+   * @param {PipeTransform[]} pipes - Pipe instances to apply in order
+   * @param {PipelineContext} context - Pipeline context constraints
+   * @returns {Promise<unknown>} The transformed value
+   */
+  private async applyPipeInstances(
+    value: unknown,
+    param: RouteParamMetadata,
+    pipes: PipeTransform[],
+    context: PipelineContext,
+  ): Promise<unknown> {
+    let result: unknown = value;
+    for (const pipe of pipes) {
       result = await pipe.transform(result, {
         type: param.type,
         metatype: param.metatype,

@@ -9,17 +9,17 @@ import type { HttpMethod, ParamType, Scope, LogLevel } from '../constants.js';
 // ─── Utility Types ───────────────────────────────────────────────────────────
 
 /** Represents a constructable class type */
-export interface Type<T = unknown> {
-  new (...args: unknown[]): T;
+export interface Type<T = any> {
+  new (...args: any[]): T;
 }
 
 /** Abstract class type (for interface-like tokens) */
-export interface Abstract<T = unknown> {
+export interface Abstract<T = any> {
   prototype: T;
 }
 
 /** Injection token: can be a string, symbol, or class reference */
-export type InjectionToken<T = unknown> = string | symbol | Type<T> | Abstract<T>;
+export type InjectionToken<T = any> = string | symbol | Type<T> | Abstract<T>;
 
 // ─── Provider Definitions ────────────────────────────────────────────────────
 

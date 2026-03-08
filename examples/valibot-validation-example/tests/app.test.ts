@@ -1,0 +1,25 @@
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { createHttpApp } from '@nemesisjs/http';
+import { TestClient } from '@nemesisjs/testing';
+import { AppModule } from '../src/app.module';
+
+describe('AppController', () => {
+  let client: TestClient;
+
+  beforeAll(async () => {
+    const app = await createHttpApp(AppModule);
+    client = new TestClient(app);
+    await client.listen();
+  });
+
+  afterAll(async () => {
+    await client.close();
+  });
+
+  it('GET / should return hello message', async () => {
+    const res = await client.get('/');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.message).toBe('Hello from NemesisJS!');
+  });
+});

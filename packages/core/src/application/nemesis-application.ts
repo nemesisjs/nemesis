@@ -10,6 +10,7 @@ import type {
   InjectionToken,
   Type,
   ILogger,
+  PipeTransform,
 } from '@nemesisjs/common';
 import { ConsoleLogger } from '@nemesisjs/common';
 
@@ -27,6 +28,7 @@ export class NemesisApplication implements NemesisApplicationInterface {
   private modules!: Map<Type<any>, ModuleRef>;
   private adapter?: ServerAdapter;
   private globalPrefix: string = '';
+  private globalPipes: PipeTransform[] = [];
   private initialized: boolean = false;
 
   constructor(rootModule: Type<any>, options: ApplicationOptions = {}) {
@@ -168,6 +170,21 @@ export class NemesisApplication implements NemesisApplicationInterface {
   setGlobalPrefix(prefix: string): this {
     this.globalPrefix = prefix.startsWith('/') ? prefix : '/' + prefix;
     return this;
+  }
+
+  /**
+   * Register global pipes.
+   */
+  useGlobalPipes(...pipes: PipeTransform[]): this {
+    this.globalPipes.push(...pipes);
+    return this;
+  }
+
+  /**
+   * Get registered global pipes.
+   */
+  getGlobalPipes(): PipeTransform[] {
+    return this.globalPipes;
   }
 
   /**

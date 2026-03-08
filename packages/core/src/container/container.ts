@@ -237,12 +237,25 @@ export class DIContainer {
     const injections = MetadataStorage.getInjections(targetClass);
     const paramCount = targetClass.length; // Number of constructor parameters
 
-    const args: unknown[] = [];
+    const args: any[] = [];
+    
+    // Fallback to TypeScript's emitDecoratorMetadata if available
+    const paramTypes = typeof (Reflect as any).getMetadata === 'function' 
+      ? (Reflect as any).getMetadata('design:paramtypes', targetClass) || [] 
+      : [];
+
     for (let i = 0; i < paramCount; i++) {
-      const token = injections.get(i);
+      let token = injections.get(i);
+      
+      // Implicit injection fallback
       if (token === undefined) {
-        throw new MissingInjectionTokenError(targetClass.name, i);
+        if (paramTypes[i] && typeof paramTypes[i] === 'function' && paramTypes[i] !== Object) {
+          token = paramTypes[i] as InjectionToken;
+        } else {
+          throw new MissingInjectionTokenError(targetClass.name, i);
+        }
       }
+      
       args.push(this.get(token));
     }
 

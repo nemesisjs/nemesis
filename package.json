@@ -9,13 +9,12 @@
     "../cli"
   ],
   "scripts": {
-    "build": "bun run build:common && bun run build:core && bun run build:platform-bun && bun run build:http && bun run build:testing && bun run build:cli",
+    "build": "bun run build:common && bun run build:core && bun run build:platform-bun && bun run build:http && bun run build:testing",
     "build:common": "cd packages/common && bun run build",
     "build:core": "cd packages/core && bun run build",
     "build:platform-bun": "cd packages/platform-bun && bun run build",
     "build:http": "cd packages/http && bun run build",
     "build:testing": "cd packages/testing && bun run build",
-    "build:cli": "cd packages/cli && bun run build",
     "test": "bun test --recursive",
     "test:unit": "bun test packages/",
     "test:e2e": "bun test tests/e2e/",

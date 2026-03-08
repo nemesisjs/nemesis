@@ -43,11 +43,9 @@ export async function createHttpApp(
   // Set up HTTP infrastructure
   const router = new HttpRouter();
   const pipeline = new PipelineExecutor();
-  const globalPrefix = options.globalPrefix ?? '';
 
   // Collect routes from all modules
-  const appLogger = app.getLogger();
-  const routeCollector = new RouteCollector(router, pipeline, globalPrefix, appLogger);
+  const routeCollector = new RouteCollector(router, pipeline, app);
   routeCollector.collectRoutes(app.getModules());
 
   // Create Bun HTTP server

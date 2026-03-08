@@ -1,0 +1,23 @@
+{
+  "name": "valibot-validation-example",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun --hot src/main.ts",
+    "start": "bun src/main.ts",
+    "build": "bun build ./src/main.ts --outdir ./dist --target bun",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@nemesisjs/common": "workspace:*",
+    "@nemesisjs/core": "workspace:*",
+    "@nemesisjs/http": "workspace:*",
+    "@nemesisjs/platform-bun": "workspace:*",
+    "@nemesisjs/validation": "workspace:*",
+    "valibot": "^0.30.0"
+  },
+  "devDependencies": {
+    "@nemesisjs/testing": "workspace:*",
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  }
+}

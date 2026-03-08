@@ -1,17 +1,19 @@
 {
-  "name": "hello-world-example",
+  "name": "zod-validation-example",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "bun --hot src/main.ts",
     "start": "bun src/main.ts",
+    "build": "bun build ./src/main.ts --outdir ./dist --target bun",
     "test": "bun test"
   },
   "dependencies": {
     "@nemesisjs/common": "workspace:*",
     "@nemesisjs/core": "workspace:*",
     "@nemesisjs/http": "workspace:*",
-    "@nemesisjs/platform-bun": "workspace:*"
+    "@nemesisjs/platform-bun": "workspace:*",
+    "@nemesisjs/validation": "workspace:*",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nemesisjs/testing": "workspace:*",
