@@ -12,11 +12,11 @@ jobs:
           path: nemesisjs
       - uses: actions/checkout@v4
         with:
-          repository: nemesisjs/cli
+          repository: cli
           path: cli
       - uses: actions/checkout@v4
         with:
-          repository: nemesisjs/validation
+          repository: validation
           path: validation
 
       - name: Setup Bun
