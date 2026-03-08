@@ -1,11 +1,8 @@
 /**
  * @nemesisjs/core - LifecycleManager
  *
- * Manages lifecycle hooks for modules and their providers:
- * 1. onModuleInit - Called after the module is initialized
- * 2. onApplicationBootstrap - Called after all modules are initialized
- * 3. onModuleDestroy - Called when the application is shutting down
- * 4. onApplicationShutdown - Called after all modules are destroyed
+ * Orchestrates lifecycle hook callbacks across all registered providers.
+ * Hooks are called in order: onModuleInit → onApplicationBootstrap → (shutdown) → onApplicationShutdown.
  */
 
 import type {
@@ -13,81 +10,124 @@ import type {
   OnApplicationShutdown,
   OnModuleDestroy,
   OnModuleInit,
-  Type,
 } from '@nemesisjs/common';
 import type { ModuleRef } from '../module/module-ref.js';
 
-type LifecycleHook = 'onModuleInit' | 'onModuleDestroy' | 'onApplicationBootstrap' | 'onApplicationShutdown';
+/** All lifecycle hook method names managed by this class */
+type LifecycleHook = keyof (OnModuleInit &
+  OnApplicationBootstrap &
+  OnModuleDestroy &
+  OnApplicationShutdown);
 
-function hasHook<T extends LifecycleHook>(instance: any, hook: T): boolean {
-  return instance && typeof instance[hook] === 'function';
+// ─── Type Guards ─────────────────────────────────────────────────────────────
+
+/**
+ * Type guard: check if an instance implements a given lifecycle hook method.
+ *
+ * @param {unknown} instance - The object to inspect
+ * @param {T} hook - The lifecycle hook method name
+ * @returns {boolean} True if the instance has a callable hook method
+ */
+function hasHook<T extends LifecycleHook>(
+  instance: unknown,
+  hook: T,
+): instance is Record<T, () => void | Promise<void>> {
+  return (
+    instance !== null &&
+    typeof instance === 'object' &&
+    hook in instance &&
+    typeof (instance as Record<string, unknown>)[hook] === 'function'
+  );
 }
 
+// ─── LifecycleManager ────────────────────────────────────────────────────────
+
+/**
+ * @class LifecycleManager
+ * @classdesc Calls lifecycle hooks on all registered module providers at the
+ * appropriate application lifecycle stage.
+ */
 export class LifecycleManager {
-  private readonly modules: Map<Type<any>, ModuleRef>;
-
-  constructor(modules: Map<Type<any>, ModuleRef>) {
-    this.modules = modules;
+  /**
+   * Call `onModuleInit()` on all providers in all modules.
+   *
+   * @param {Map<Function, ModuleRef>} modules - The loaded module map
+   * @returns {Promise<void>}
+   */
+  async callModuleInit(modules: Map<Function, ModuleRef>): Promise<void> {
+    await this.callHookOnAllProviders(modules, 'onModuleInit');
   }
 
   /**
-   * Call onModuleInit on all providers and module instances.
+   * Call `onApplicationBootstrap()` on all providers in all modules.
+   *
+   * @param {Map<Function, ModuleRef>} modules - The loaded module map
+   * @returns {Promise<void>}
    */
-  async callOnModuleInit(): Promise<void> {
-    await this.callHookOnAllProviders('onModuleInit');
+  async callBootstrap(modules: Map<Function, ModuleRef>): Promise<void> {
+    await this.callHookOnAllProviders(modules, 'onApplicationBootstrap');
   }
 
   /**
-   * Call onApplicationBootstrap on all providers and module instances.
+   * Call `onModuleDestroy()` on all providers in all modules.
+   *
+   * @param {Map<Function, ModuleRef>} modules - The loaded module map
+   * @returns {Promise<void>}
    */
-  async callOnApplicationBootstrap(): Promise<void> {
-    await this.callHookOnAllProviders('onApplicationBootstrap');
+  async callModuleDestroy(modules: Map<Function, ModuleRef>): Promise<void> {
+    await this.callHookOnAllProviders(modules, 'onModuleDestroy');
   }
 
   /**
-   * Call onModuleDestroy on all providers and module instances (reverse order).
+   * Call `onApplicationShutdown()` on all providers in all modules.
+   *
+   * @param {Map<Function, ModuleRef>} modules - The loaded module map
+   * @param {string} [signal] - The shutdown signal (e.g., 'SIGTERM')
+   * @returns {Promise<void>}
    */
-  async callOnModuleDestroy(): Promise<void> {
-    await this.callHookOnAllProviders('onModuleDestroy');
-  }
-
-  /**
-   * Call onApplicationShutdown on all providers and module instances (reverse order).
-   */
-  async callOnApplicationShutdown(signal?: string): Promise<void> {
-    for (const [, moduleRef] of this.modules) {
-      const providers = moduleRef.container.getProviders();
-      for (const [, record] of providers) {
-        if (record.instance && hasHook(record.instance, 'onApplicationShutdown')) {
-          await (record.instance as OnApplicationShutdown).onApplicationShutdown(signal);
-        }
-      }
-      if (moduleRef.instance && hasHook(moduleRef.instance, 'onApplicationShutdown')) {
-        await (moduleRef.instance as OnApplicationShutdown).onApplicationShutdown(signal);
-      }
-    }
+  async callShutdown(modules: Map<Function, ModuleRef>, signal?: string): Promise<void> {
+    await this.callHookOnAllProviders(modules, 'onApplicationShutdown', signal);
   }
 
   // ─── Private ─────────────────────────────────────────────────────────
 
-  private async callHookOnAllProviders(hook: LifecycleHook): Promise<void> {
-    for (const [, moduleRef] of this.modules) {
-      // Call on all resolved provider instances
-      const providers = moduleRef.container.getProviders();
-      for (const [token] of providers) {
+  /**
+   * Iterate over all providers in all modules and call the given hook if implemented.
+   *
+   * @param {Map<Function, ModuleRef>} modules - The loaded module map
+   * @param {LifecycleHook} hook - The lifecycle hook method name to call
+   * @param {...unknown} args - Additional arguments to pass to the hook (e.g., signal)
+   * @returns {Promise<void>}
+   */
+  private async callHookOnAllProviders(
+    modules: Map<Function, ModuleRef>,
+    hook: LifecycleHook,
+    ...args: unknown[]
+  ): Promise<void> {
+    for (const [, moduleRef] of modules) {
+      const tokens = moduleRef.container.getTokens();
+
+      for (const token of tokens) {
         try {
           const instance = moduleRef.container.get(token);
-          if (instance && hasHook(instance, hook)) {
-            await (instance as any)[hook]();
-          }
-        } catch {
-          // Provider may not be resolvable yet during init; skip gracefully
-        }
-      }
 
-      // Call on the module instance itself
-      if (moduleRef.instance && hasHook(moduleRef.instance, hook)) {
-        await (moduleRef.instance as any)[hook]();
+          if (hasHook(instance, hook)) {
+            if (args.length > 0) {
+              // onApplicationShutdown takes an optional signal string
+              const signal = typeof args[0] === 'string' ? args[0] : undefined;
+              (instance as Record<string, (s?: string) => void | Promise<void>>)[hook](signal);
+            } else {
+              await instance[hook]();
+            }
+          }
+        } catch (error) {
+          // Log hook errors but don't let them block other providers' hooks
+          // from running. The provider may simply not be resolvable at this stage.
+          console.warn(
+            `[NemesisJS] Lifecycle hook "${hook}" failed for token "${String(token)}":`,
+            error,
+          );
+        }
       }
     }
   }

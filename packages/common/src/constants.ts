@@ -44,25 +44,6 @@ export const HTTP_METHODS = {
 
 export type HttpMethod = (typeof HTTP_METHODS)[keyof typeof HTTP_METHODS];
 
-// ─── Metadata Keys ───────────────────────────────────────────────────────────
-// Symbols used as keys in the MetadataStorage to avoid key collisions.
-
-export const METADATA_KEYS = {
-  INJECTABLE: Symbol('nemesis:injectable'),
-  INJECT: Symbol('nemesis:inject'),
-  MODULE: Symbol('nemesis:module'),
-  CONTROLLER: Symbol('nemesis:controller'),
-  ROUTE: Symbol('nemesis:route'),
-  ROUTE_PARAMS: Symbol('nemesis:route-params'),
-  GUARDS: Symbol('nemesis:guards'),
-  PIPES: Symbol('nemesis:pipes'),
-  INTERCEPTORS: Symbol('nemesis:interceptors'),
-  MIDDLEWARE: Symbol('nemesis:middleware'),
-  EXCEPTION_FILTERS: Symbol('nemesis:exception-filters'),
-  SCOPE: Symbol('nemesis:scope'),
-  GLOBAL_MODULE: Symbol('nemesis:global-module'),
-} as const;
-
 // ─── Injection Scopes ────────────────────────────────────────────────────────
 
 export const SCOPE = {
@@ -86,3 +67,15 @@ export const PARAM_TYPE = {
 } as const;
 
 export type ParamType = (typeof PARAM_TYPE)[keyof typeof PARAM_TYPE];
+
+// ─── Log Levels ──────────────────────────────────────────────────────────────
+
+export const LOG_LEVELS = {
+  ERROR: 'error',
+  WARN: 'warn',
+  LOG: 'log',
+  DEBUG: 'debug',
+  VERBOSE: 'verbose',
+} as const;
+
+export type LogLevel = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];

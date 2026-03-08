@@ -12,6 +12,9 @@ import { MetadataStorage } from '../metadata/metadata-storage.js';
  * Binds guards to the scope of the controller or method.
  * Guards are executed in the order they are listed.
  *
+ * @param {...Type<CanActivate>} guards - Guard classes to apply
+ * @returns {ClassDecorator & MethodDecorator} The decorator function
+ *
  * @example
  * ```ts
  * // Method-level guard
@@ -32,15 +35,12 @@ export function UseGuards(...guards: Type<CanActivate>[]): ClassDecorator & Meth
     _descriptor?: PropertyDescriptor,
   ) => {
     if (propertyKey !== undefined) {
-      // Method-level
-      MetadataStorage.setMethodGuards(
-        (target as any).constructor as Type<any>,
-        propertyKey,
-        guards,
-      );
+      // Method-level: target is the prototype, constructor holds class metadata
+      const constructor = (target as { constructor: Type<unknown> }).constructor;
+      MetadataStorage.setMethodGuards(constructor, propertyKey, guards);
     } else {
-      // Class-level
-      MetadataStorage.setClassGuards(target as Type<any>, guards);
+      // Class-level: target is the constructor function itself
+      MetadataStorage.setClassGuards(target as Type<unknown>, guards);
     }
   };
 }

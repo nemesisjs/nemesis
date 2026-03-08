@@ -1,180 +1,217 @@
 /**
  * @nemesisjs/platform-bun - RequestContext
  *
- * Wraps the native Web API Request with convenience methods for
- * body parsing, query extraction, header access, and response building.
- * This is the primary interface controllers use to interact with HTTP requests.
+ * Wraps the native Web API `Request` object with convenience methods
+ * for accessing route params, query strings, body, and building responses.
+ *
+ * @class RequestContext
+ * @classdesc HTTP request/response context object passed to every route handler.
  */
 
+import type { HttpStatusCode } from '@nemesisjs/common';
+
 export class RequestContext {
-  public readonly request: Request;
-  public readonly url: URL;
-  public params: Record<string, string>;
-  private _body: any = undefined;
-  private _bodyParsed = false;
+  /** @private Underlying native Request object */
+  private readonly _request: Request;
 
-  constructor(
-    request: Request,
-    params: Record<string, string> = {},
-  ) {
-    this.request = request;
-    this.url = new URL(request.url);
-    this.params = params;
+  /** @private Parsed route parameters (e.g., { id: '42' } for /:id) */
+  private readonly _params: Record<string, string>;
+
+  /** @private Cached decoded URL with query string */
+  private readonly _url: URL;
+
+  /** @private Cached body — loaded lazily on first `getBody()` call */
+  private _body: unknown = undefined;
+
+  /** @private Flag indicating if the body has been parsed */
+  private _bodyParsed: boolean = false;
+
+  /**
+   * @param {Request} request - The native Web API request
+   * @param {Record<string, string>} params - Route path parameters
+   */
+  constructor(request: Request, params: Record<string, string> = {}) {
+    this._request = request;
+    this._params = params;
+    this._url = new URL(request.url);
   }
 
-  // ─── Request Accessors ─────────────────────────────────────────────
+  // ─── Request Metadata ────────────────────────────────────────────────
 
-  /** Get the HTTP method */
-  getMethod(): string {
-    return this.request.method;
+  /**
+   * The HTTP method of the request.
+   *
+   * @returns {string} e.g., 'GET', 'POST'
+   */
+  get method(): string {
+    return this._request.method;
   }
 
-  /** Get the request path (without query string) */
-  getPath(): string {
-    return this.url.pathname;
+  /**
+   * The full request URL including query string.
+   *
+   * @returns {string} The full URL
+   */
+  get url(): string {
+    return this._request.url;
   }
 
-  /** Get all query parameters as a record */
-  getQueryAll(): Record<string, string> {
-    const query: Record<string, string> = {};
-    this.url.searchParams.forEach((value, key) => {
-      query[key] = value;
-    });
-    return query;
+  /**
+   * The request path without query string.
+   *
+   * @returns {string} e.g., '/users/42'
+   */
+  get path(): string {
+    return this._url.pathname;
   }
 
-  /** Get a specific query parameter */
-  getQuery(key: string): string | null {
-    return this.url.searchParams.get(key);
+  /**
+   * The raw native Request object.
+   *
+   * @returns {Request} The original Fetch API request
+   */
+  get request(): Request {
+    return this._request;
   }
 
-  /** Get a specific route parameter */
+  // ─── Route Parameters ────────────────────────────────────────────────
+
+  /**
+   * Get all route path parameters.
+   *
+   * @returns {Record<string, string>} Object of parameter names to values
+   */
+  getParams(): Record<string, string> {
+    return this._params;
+  }
+
+  /**
+   * Get a specific route path parameter.
+   *
+   * @param {string} key - The parameter name (e.g., 'id' for /:id)
+   * @returns {string | undefined} The parameter value, or undefined if not found
+   */
   getParam(key: string): string | undefined {
-    return this.params[key];
+    return this._params[key];
   }
 
-  /** Get all request headers as a record */
-  getHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {};
-    this.request.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-    return headers;
+  // ─── Query String ────────────────────────────────────────────────────
+
+  /**
+   * Get all query string parameters.
+   *
+   * @returns {URLSearchParams} The URL search params
+   */
+  getQuery(): URLSearchParams {
+    return this._url.searchParams;
   }
 
-  /** Get a specific header value */
-  getHeader(key: string): string | null {
-    return this.request.headers.get(key);
+  /**
+   * Get a specific query string parameter.
+   *
+   * @param {string} key - The query parameter name
+   * @returns {string | null} The value, or null if not present
+   */
+  getQueryParam(key: string): string | null {
+    return this._url.searchParams.get(key);
   }
 
-  /** Parse and return the request body as JSON */
-  async getBody<T = any>(): Promise<T> {
+  // ─── Headers ─────────────────────────────────────────────────────────
+
+  /**
+   * Get the value of a request header.
+   *
+   * @param {string} name - The header name (case-insensitive)
+   * @returns {string | null} The header value, or null if absent
+   */
+  getHeader(name: string): string | null {
+    return this._request.headers.get(name);
+  }
+
+  /**
+   * Get all request headers.
+   *
+   * @returns {Headers} The Fetch API Headers object
+   */
+  getHeaders(): Headers {
+    return this._request.headers;
+  }
+
+  // ─── Body ────────────────────────────────────────────────────────────
+
+  /**
+   * Parse and return the request body as the given type.
+   * The body is cached; subsequent calls return the same parsed value.
+   * The caller is responsible for validating the shape of `T`.
+   *
+   * @template T - The expected body shape
+   * @returns {Promise<T>} The parsed JSON body
+   * @throws {SyntaxError} When the body is not valid JSON
+   */
+  async getBody<T = unknown>(): Promise<T> {
     if (!this._bodyParsed) {
-      const contentType = this.request.headers.get('content-type') ?? '';
-      if (contentType.includes('application/json')) {
-        try {
-          this._body = await this.request.json();
-        } catch {
-          this._body = null;
-        }
-      } else if (contentType.includes('application/x-www-form-urlencoded')) {
-        const text = await this.request.text();
-        const params = new URLSearchParams(text);
-        const body: Record<string, string> = {};
-        params.forEach((value, key) => {
-          body[key] = value;
-        });
-        this._body = body;
-      } else if (contentType.includes('multipart/form-data')) {
-        try {
-          this._body = await this.request.formData();
-        } catch {
-          this._body = null;
-        }
-      } else {
-        try {
-          this._body = await this.request.text();
-        } catch {
-          this._body = null;
-        }
-      }
+      this._body = await this._request.json();
       this._bodyParsed = true;
     }
     return this._body as T;
   }
 
-  /** Get the raw request body as text */
+  /**
+   * Return the raw request body as text.
+   *
+   * @returns {Promise<string>} The body text
+   */
   async getText(): Promise<string> {
-    return this.request.text();
+    return this._request.text();
   }
 
-  /** Get the raw request body as ArrayBuffer */
-  async getArrayBuffer(): Promise<ArrayBuffer> {
-    return this.request.arrayBuffer();
-  }
+  // ─── Response Helpers ────────────────────────────────────────────────
 
-  // ─── Response Builders ─────────────────────────────────────────────
-
-  /** Create a JSON response */
-  json<T = any>(data: T, status: number = 200, headers?: Record<string, string>): Response {
+  /**
+   * Create a JSON response.
+   *
+   * @param {unknown} data - The data to serialize as JSON
+   * @param {HttpStatusCode} [status=200] - HTTP status code
+   * @returns {Response} The JSON response
+   */
+  json(data: unknown, status: HttpStatusCode = 200): Response {
     return new Response(JSON.stringify(data), {
       status,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  /** Create a plain text response */
-  text(data: string, status: number = 200, headers?: Record<string, string>): Response {
-    return new Response(data, {
+  /**
+   * Create a plain text response.
+   *
+   * @param {string} text - The response body
+   * @param {HttpStatusCode} [status=200] - HTTP status code
+   * @returns {Response} The text response
+   */
+  text(text: string, status: HttpStatusCode = 200): Response {
+    return new Response(text, {
       status,
-      headers: {
-        'Content-Type': 'text/plain',
-        ...headers,
-      },
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
   }
 
-  /** Create an HTML response */
-  html(data: string, status: number = 200, headers?: Record<string, string>): Response {
-    return new Response(data, {
-      status,
-      headers: {
-        'Content-Type': 'text/html',
-        ...headers,
-      },
-    });
+  /**
+   * Create a redirect response.
+   *
+   * @param {string} url - The redirect destination
+   * @param {HttpStatusCode} [status=302] - The redirect status code (301 or 302)
+   * @returns {Response} The redirect response
+   */
+  redirect(url: string, status: HttpStatusCode = 302): Response {
+    return Response.redirect(url, status);
   }
 
-  /** Create a redirect response */
-  redirect(url: string, status: 301 | 302 | 307 | 308 = 302): Response {
-    return new Response(null, {
-      status,
-      headers: { Location: url },
-    });
-  }
-
-  /** Create a streaming response (SSE, chunked, etc.) */
-  stream(
-    body: ReadableStream,
-    status: number = 200,
-    headers?: Record<string, string>,
-  ): Response {
-    return new Response(body, {
-      status,
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        ...headers,
-      },
-    });
-  }
-
-  /** Create an empty response with just a status code */
-  empty(status: number = 204): Response {
-    return new Response(null, { status });
+  /**
+   * Create a 204 No Content response.
+   *
+   * @returns {Response} An empty response
+   */
+  noContent(): Response {
+    return new Response(null, { status: 204 });
   }
 }

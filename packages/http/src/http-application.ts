@@ -5,13 +5,13 @@
  * This is the "glue" that connects @nemesisjs/core with @nemesisjs/platform-bun.
  */
 
-import type { ApplicationOptions, Type } from '@nemesisjs/common';
+import type { ApplicationOptions, CorsOptions, Type } from '@nemesisjs/common';
+import { NotFoundException, MethodNotAllowedException } from '@nemesisjs/common';
 import { NemesisApplication } from '@nemesisjs/core';
 import { BunHttpServer, type BunServerOptions } from '@nemesisjs/platform-bun';
 import { HttpRouter } from './router/router.js';
 import { RouteCollector } from './router/route-collector.js';
 import { PipelineExecutor } from './pipeline/pipeline-executor.js';
-import { NotFoundException, MethodNotAllowedException } from '@nemesisjs/common';
 
 export interface HttpApplicationOptions extends ApplicationOptions {
   /** Bun server options */
@@ -33,7 +33,7 @@ export interface HttpApplicationOptions extends ApplicationOptions {
  * ```
  */
 export async function createHttpApp(
-  rootModule: Type<any>,
+  rootModule: Type<unknown>,
   options: HttpApplicationOptions = {},
 ): Promise<NemesisApplication> {
   // Create and initialize the application
@@ -69,20 +69,20 @@ export async function createHttpApp(
     // Match route
     const match = router.match(method, path);
 
-    if (!match) {
+      if (!match) {
       // Check if path exists but method isn't allowed
       if (router.hasPath(path)) {
-        const error = new MethodNotAllowedException();
+        const methodNotAllowed = new MethodNotAllowedException();
         return new Response(
-          JSON.stringify({ statusCode: 405, message: 'Method Not Allowed' }),
-          { status: 405, headers: { 'Content-Type': 'application/json' } },
+          JSON.stringify({ statusCode: methodNotAllowed.getStatus(), message: 'Method Not Allowed' }),
+          { status: methodNotAllowed.getStatus(), headers: { 'Content-Type': 'application/json' } },
         );
       }
 
-      const error = new NotFoundException(`Cannot ${method} ${path}`);
+      const notFound = new NotFoundException(`Cannot ${method} ${path}`);
       return new Response(
-        JSON.stringify({ statusCode: 404, message: `Cannot ${method} ${path}` }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } },
+        JSON.stringify({ statusCode: notFound.getStatus(), message: `Cannot ${method} ${path}` }),
+        { status: notFound.getStatus(), headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -106,10 +106,10 @@ export async function createHttpApp(
 // ─── CORS Helpers ────────────────────────────────────────────────────────────
 
 function buildCorsResponse(
-  cors: boolean | import('@nemesisjs/common').CorsOptions,
+  cors: boolean | CorsOptions,
   request: Request,
 ): Response {
-  const opts = cors === true ? {} : cors;
+  const opts: CorsOptions = cors === true || cors === false ? {} : cors;
   const origin = resolveOrigin(opts.origin, request);
 
   return new Response(null, {
@@ -129,10 +129,10 @@ function buildCorsResponse(
 
 function addCorsHeaders(
   response: Response,
-  cors: boolean | import('@nemesisjs/common').CorsOptions,
+  cors: boolean | CorsOptions,
   request: Request,
 ): Response {
-  const opts = cors === true ? {} : cors;
+  const opts: CorsOptions = cors === true || cors === false ? {} : cors;
   const origin = resolveOrigin(opts.origin, request);
 
   const newHeaders = new Headers(response.headers);

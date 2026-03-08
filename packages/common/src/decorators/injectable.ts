@@ -12,6 +12,9 @@ import { MetadataStorage } from '../metadata/metadata-storage.js';
 /**
  * Marks a class as injectable (can be managed by the DI container).
  *
+ * @param {InjectableOptions} [options] - Optional configuration (e.g., scope)
+ * @returns {ClassDecorator} The class decorator function
+ *
  * @example
  * ```ts
  * @Injectable()
@@ -30,6 +33,9 @@ export function Injectable(options?: InjectableOptions): ClassDecorator {
  * Declares a constructor dependency by injection token.
  * This replaces the need for emitDecoratorMetadata — you explicitly
  * tell the container what to inject at each parameter position.
+ *
+ * @param {InjectionToken} token - The injection token for this parameter
+ * @returns {ParameterDecorator} The parameter decorator function
  *
  * @example
  * ```ts

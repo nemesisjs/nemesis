@@ -11,6 +11,9 @@ import { MetadataStorage } from '../metadata/metadata-storage.js';
 /**
  * Binds pipes to the scope of the controller or method.
  *
+ * @param {...Type<PipeTransform>} pipes - Pipe classes to apply
+ * @returns {ClassDecorator & MethodDecorator} The decorator function
+ *
  * @example
  * ```ts
  * @UsePipes(ValidationPipe)
@@ -25,13 +28,10 @@ export function UsePipes(...pipes: Type<PipeTransform>[]): ClassDecorator & Meth
     _descriptor?: PropertyDescriptor,
   ) => {
     if (propertyKey !== undefined) {
-      MetadataStorage.setMethodPipes(
-        (target as any).constructor as Type<any>,
-        propertyKey,
-        pipes,
-      );
+      const constructor = (target as { constructor: Type<unknown> }).constructor;
+      MetadataStorage.setMethodPipes(constructor, propertyKey, pipes);
     } else {
-      MetadataStorage.setClassPipes(target as Type<any>, pipes);
+      MetadataStorage.setClassPipes(target as Type<unknown>, pipes);
     }
   };
 }

@@ -10,7 +10,7 @@ import type {
   InjectionToken,
   Type,
 } from '@nemesisjs/common';
-import { DIContainer } from '../container/container.js';
+
 import { LifecycleManager } from '../lifecycle/lifecycle-manager.js';
 import { ModuleLoader } from '../module/module-loader.js';
 import type { ModuleRef } from '../module/module-ref.js';
@@ -45,13 +45,13 @@ export class NemesisApplication implements NemesisApplicationInterface {
     this.modules = await this.moduleLoader.load(this.rootModule);
 
     // Create lifecycle manager
-    this.lifecycleManager = new LifecycleManager(this.modules);
+    this.lifecycleManager = new LifecycleManager();
 
     // Run onModuleInit hooks
-    await this.lifecycleManager.callOnModuleInit();
+    await this.lifecycleManager.callModuleInit(this.modules);
 
     // Run onApplicationBootstrap hooks
-    await this.lifecycleManager.callOnApplicationBootstrap();
+    await this.lifecycleManager.callBootstrap(this.modules);
 
     this.initialized = true;
   }
@@ -96,8 +96,8 @@ export class NemesisApplication implements NemesisApplicationInterface {
     }
 
     if (this.lifecycleManager) {
-      await this.lifecycleManager.callOnModuleDestroy();
-      await this.lifecycleManager.callOnApplicationShutdown();
+      await this.lifecycleManager.callModuleDestroy(this.modules);
+      await this.lifecycleManager.callShutdown(this.modules);
     }
   }
 

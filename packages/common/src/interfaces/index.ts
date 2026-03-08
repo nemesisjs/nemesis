@@ -4,53 +4,53 @@
  * All type definitions that form the contract between NemesisJS packages.
  */
 
-import type { HttpMethod, HttpStatusCode, ParamType, Scope } from '../constants.js';
+import type { HttpMethod, ParamType, Scope, LogLevel } from '../constants.js';
 
 // ─── Utility Types ───────────────────────────────────────────────────────────
 
 /** Represents a constructable class type */
-export interface Type<T = any> {
-  new (...args: any[]): T;
+export interface Type<T = unknown> {
+  new (...args: unknown[]): T;
 }
 
 /** Abstract class type (for interface-like tokens) */
-export interface Abstract<T = any> {
+export interface Abstract<T = unknown> {
   prototype: T;
 }
 
 /** Injection token: can be a string, symbol, or class reference */
-export type InjectionToken<T = any> = string | symbol | Type<T> | Abstract<T>;
+export type InjectionToken<T = unknown> = string | symbol | Type<T> | Abstract<T>;
 
 // ─── Provider Definitions ────────────────────────────────────────────────────
 
 /** A simple class provider - the class itself is both token and implementation */
-export interface ClassProvider<T = any> {
+export interface ClassProvider<T = unknown> {
   provide: InjectionToken<T>;
   useClass: Type<T>;
   scope?: Scope;
 }
 
 /** A value provider - provides a static value */
-export interface ValueProvider<T = any> {
+export interface ValueProvider<T = unknown> {
   provide: InjectionToken<T>;
   useValue: T;
 }
 
 /** A factory provider - creates values dynamically */
-export interface FactoryProvider<T = any> {
+export interface FactoryProvider<T = unknown> {
   provide: InjectionToken<T>;
-  useFactory: (...args: any[]) => T | Promise<T>;
+  useFactory: (...args: unknown[]) => T | Promise<T>;
   inject?: InjectionToken[];
 }
 
 /** An existing provider - aliases one token to another */
-export interface ExistingProvider<T = any> {
+export interface ExistingProvider<T = unknown> {
   provide: InjectionToken<T>;
   useExisting: InjectionToken<T>;
 }
 
 /** Union of all provider types */
-export type Provider<T = any> =
+export type Provider<T = unknown> =
   | Type<T>
   | ClassProvider<T>
   | ValueProvider<T>
@@ -61,9 +61,9 @@ export type Provider<T = any> =
 
 export interface ModuleMetadata {
   /** Imported modules whose exported providers are available in this module */
-  imports?: Array<Type<any> | DynamicModule>;
+  imports?: Array<Type<unknown> | DynamicModule>;
   /** Controller classes to register */
-  controllers?: Type<any>[];
+  controllers?: Type<unknown>[];
   /** Providers (services) available within this module */
   providers?: Provider[];
   /** Providers to export for use by importing modules */
@@ -73,7 +73,7 @@ export interface ModuleMetadata {
 }
 
 export interface DynamicModule extends ModuleMetadata {
-  module: Type<any>;
+  module: Type<unknown>;
 }
 
 // ─── Guard Interface ─────────────────────────────────────────────────────────
@@ -82,11 +82,11 @@ export interface ExecutionContext {
   /** Get the handler function */
   getHandler(): Function;
   /** Get the controller class */
-  getClass(): Type<any>;
+  getClass(): Type<unknown>;
   /** Get the request object */
-  getRequest<T = any>(): T;
+  getRequest<T = unknown>(): T;
   /** Get the response object */
-  getResponse<T = any>(): T;
+  getResponse<T = unknown>(): T;
   /** Get the type of context (http, ws, rpc) */
   getType(): string;
   /** Switch to HTTP-specific context */
@@ -94,9 +94,9 @@ export interface ExecutionContext {
 }
 
 export interface HttpArgumentsHost {
-  getRequest<T = any>(): T;
-  getResponse<T = any>(): T;
-  getNext<T = any>(): T;
+  getRequest<T = unknown>(): T;
+  getResponse<T = unknown>(): T;
+  getNext<T = unknown>(): T;
 }
 
 export interface CanActivate {
@@ -107,21 +107,21 @@ export interface CanActivate {
 
 export interface ArgumentMetadata {
   type: ParamType;
-  metatype?: Type<any>;
+  metatype?: Type<unknown>;
   data?: string;
 }
 
-export interface PipeTransform<T = any, R = any> {
+export interface PipeTransform<T = unknown, R = unknown> {
   transform(value: T, metadata: ArgumentMetadata): R | Promise<R>;
 }
 
 // ─── Interceptor Interface ───────────────────────────────────────────────────
 
-export interface CallHandler<T = any> {
+export interface CallHandler<T = unknown> {
   handle(): Promise<T>;
 }
 
-export interface NemesisInterceptor<T = any, R = any> {
+export interface NemesisInterceptor<T = unknown, R = unknown> {
   intercept(context: ExecutionContext, next: CallHandler<T>): Promise<R>;
 }
 
@@ -166,12 +166,12 @@ export interface RouteParamMetadata {
 
 export interface ControllerMetadata {
   prefix: string;
-  target: Type<any>;
+  target: Type<unknown>;
 }
 
 // ─── Exception Filter Interface ──────────────────────────────────────────────
 
-export interface ExceptionFilter<T = any> {
+export interface ExceptionFilter<T = unknown> {
   catch(exception: T, context: ExecutionContext): Response | Promise<Response>;
 }
 
@@ -195,18 +195,11 @@ export interface CorsOptions {
   maxAge?: number;
 }
 
-export const LOG_LEVELS = {
-  ERROR: 'error',
-  WARN: 'warn',
-  LOG: 'log',
-  DEBUG: 'debug',
-  VERBOSE: 'verbose',
-} as const;
-
-export type LogLevel = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];
-
 // ─── Injectable Options ──────────────────────────────────────────────────────
 
 export interface InjectableOptions {
   scope?: Scope;
 }
+
+// ─── Re-export log level type for backwards compat ───────────────────────────
+export type { LogLevel } from '../constants.js';

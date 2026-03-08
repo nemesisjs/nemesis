@@ -6,11 +6,13 @@
 
 import type { Type } from '../interfaces/index.js';
 import { MetadataStorage } from '../metadata/metadata-storage.js';
+import { normalizePath } from '../utils/path.js';
 
 /**
  * Marks a class as a controller that handles HTTP requests.
  *
- * @param prefix - Route prefix for all routes in this controller (e.g., '/users')
+ * @param {string} prefix - Route prefix for all routes in this controller (e.g., '/users')
+ * @returns {ClassDecorator} The class decorator function
  *
  * @example
  * ```ts
@@ -23,22 +25,12 @@ import { MetadataStorage } from '../metadata/metadata-storage.js';
  */
 export function Controller(prefix: string = '/'): ClassDecorator {
   return (target: Function) => {
+    const typedTarget = target as Type<unknown>;
     // Controllers are implicitly injectable
-    MetadataStorage.setInjectable(target as Type<any>, {});
-    MetadataStorage.setController(target as Type<any>, {
+    MetadataStorage.setInjectable(typedTarget, {});
+    MetadataStorage.setController(typedTarget, {
       prefix: normalizePath(prefix),
-      target: target as Type<any>,
+      target: typedTarget,
     });
   };
-}
-
-/** Normalize a route path: ensure leading slash, no trailing slash */
-function normalizePath(path: string): string {
-  if (!path.startsWith('/')) {
-    path = '/' + path;
-  }
-  if (path.length > 1 && path.endsWith('/')) {
-    path = path.slice(0, -1);
-  }
-  return path;
 }

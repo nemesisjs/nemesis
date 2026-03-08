@@ -17,15 +17,24 @@ import {
 import { ModuleNotFoundError } from '../errors/index.js';
 import { ModuleRef } from './module-ref.js';
 
+/**
+ * @class ModuleLoader
+ * @classdesc Walks the module graph from the root, registers all providers into
+ * their per-module containers, and resolves cross-module imports.
+ */
 export class ModuleLoader {
-  private readonly modules = new Map<Type<any>, ModuleRef>();
+  private readonly modules = new Map<Type<unknown>, ModuleRef>();
   private readonly globalModules = new Set<ModuleRef>();
 
   /**
    * Load the entire module tree starting from the root module.
-   * Returns a map of all loaded modules.
+   * Returns a map of all loaded module references keyed by their class.
+   *
+   * @param {Type<unknown>} rootModule - The root module class decorated with `@Module`
+   * @returns {Promise<Map<Type<unknown>, ModuleRef>>} Map of all loaded modules
+   * @throws {ModuleNotFoundError} When a class is not decorated with `@Module`
    */
-  async load(rootModule: Type<any>): Promise<Map<Type<any>, ModuleRef>> {
+  async load(rootModule: Type<unknown>): Promise<Map<Type<unknown>, ModuleRef>> {
     await this.scanModule(rootModule);
     this.resolveImports();
     this.registerProviders();
@@ -33,21 +42,28 @@ export class ModuleLoader {
   }
 
   /**
-   * Get a loaded module by its class.
+   * Get a loaded module reference by its class.
+   *
+   * @param {Type<unknown>} target - The module class
+   * @returns {ModuleRef | undefined} The module reference, or undefined if not loaded
    */
-  getModule(target: Type<any>): ModuleRef | undefined {
+  getModule(target: Type<unknown>): ModuleRef | undefined {
     return this.modules.get(target);
   }
 
   /**
-   * Get all loaded modules.
+   * Get all loaded module references.
+   *
+   * @returns {Map<Type<unknown>, ModuleRef>} Map of all loaded modules
    */
-  getModules(): Map<Type<any>, ModuleRef> {
+  getModules(): Map<Type<unknown>, ModuleRef> {
     return this.modules;
   }
 
   /**
-   * Get all global modules.
+   * Get all modules marked as global.
+   *
+   * @returns {Set<ModuleRef>} Set of global module references
    */
   getGlobalModules(): Set<ModuleRef> {
     return this.globalModules;
@@ -55,9 +71,16 @@ export class ModuleLoader {
 
   // ─── Private: Module Scanning ────────────────────────────────────────
 
-  private async scanModule(target: Type<any> | DynamicModule): Promise<ModuleRef> {
+  /**
+   * Recursively scan a module and all its imports.
+   *
+   * @param {Type<unknown> | DynamicModule} target - The module class or dynamic module object
+   * @returns {Promise<ModuleRef>} The module reference for the scanned module
+   * @throws {ModuleNotFoundError} When the class is not decorated with `@Module`
+   */
+  private async scanModule(target: Type<unknown> | DynamicModule): Promise<ModuleRef> {
     // Handle dynamic modules
-    let moduleClass: Type<any>;
+    let moduleClass: Type<unknown>;
     let metadata: ModuleMetadata;
 
     if (this.isDynamicModule(target)) {
@@ -80,7 +103,11 @@ export class ModuleLoader {
 
     // Skip if already scanned
     if (this.modules.has(moduleClass)) {
-      return this.modules.get(moduleClass)!;
+      const existing = this.modules.get(moduleClass);
+      if (existing === undefined) {
+        throw new ModuleNotFoundError(moduleClass.name);
+      }
+      return existing;
     }
 
     const moduleRef = new ModuleRef(moduleClass, metadata);
@@ -94,7 +121,9 @@ export class ModuleLoader {
     // Recursively scan imported modules
     const imports = metadata.imports ?? [];
     for (const importedModule of imports) {
-      const importedRef = await this.scanModule(importedModule as Type<any> | DynamicModule);
+      const importedRef = await this.scanModule(
+        importedModule as Type<unknown> | DynamicModule,
+      );
       moduleRef.imports.push(importedRef);
     }
 
@@ -106,6 +135,8 @@ export class ModuleLoader {
   /**
    * For each module, make exported providers from imported modules
    * available in the importing module's container.
+   *
+   * @returns {void}
    */
   private resolveImports(): void {
     for (const [, moduleRef] of this.modules) {
@@ -123,18 +154,25 @@ export class ModuleLoader {
     }
   }
 
+  /**
+   * Copy exported providers from a source module into a target module's container.
+   *
+   * @param {ModuleRef} targetModule - The module that needs the providers
+   * @param {ModuleRef} sourceModule - The module that exports the providers
+   * @returns {void}
+   */
   private importExportedProviders(targetModule: ModuleRef, sourceModule: ModuleRef): void {
     const exports = sourceModule.getExports();
 
     for (const exported of exports) {
       if (this.isProvider(exported)) {
         // Re-register the provider in the target module
-        targetModule.container.register(exported);
+        targetModule.container.register(exported as Provider);
       } else {
         // It's a token — look up the provider in the source and register in target
         const token = exported as InjectionToken;
         if (sourceModule.container.has(token)) {
-          // Register as a value provider pointing to the resolved instance
+          // Register as a factory provider that delegates to the source container
           targetModule.container.registerWithToken(token, {
             provide: token,
             useFactory: () => sourceModule.container.get(token),
@@ -148,6 +186,9 @@ export class ModuleLoader {
 
   /**
    * Register all providers declared in each module into their containers.
+   * Controllers are also registered since they require DI.
+   *
+   * @returns {void}
    */
   private registerProviders(): void {
     for (const [, moduleRef] of this.modules) {
@@ -166,11 +207,23 @@ export class ModuleLoader {
 
   // ─── Type Guards ─────────────────────────────────────────────────────
 
-  private isDynamicModule(target: any): target is DynamicModule {
-    return target && typeof target === 'object' && 'module' in target;
+  /**
+   * Type guard: check if a value is a DynamicModule object.
+   *
+   * @param {unknown} target - The value to check
+   * @returns {boolean} True if the value has a `module` property
+   */
+  private isDynamicModule(target: unknown): target is DynamicModule {
+    return target !== null && typeof target === 'object' && 'module' in target;
   }
 
-  private isProvider(value: any): value is Provider {
+  /**
+   * Type guard: check if a value is a Provider (class or object with `provide`).
+   *
+   * @param {unknown} value - The value to check
+   * @returns {boolean} True if the value is a valid provider
+   */
+  private isProvider(value: unknown): value is Provider {
     if (typeof value === 'function') return true;
     if (typeof value === 'object' && value !== null && 'provide' in value) return true;
     return false;

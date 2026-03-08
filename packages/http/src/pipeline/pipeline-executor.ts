@@ -12,6 +12,7 @@
 
 import {
   type CanActivate,
+  type ExecutionContext,
   type NemesisInterceptor,
   type PipeTransform,
   type RouteParamMetadata,
@@ -26,25 +27,57 @@ import type { RequestContext } from '@nemesisjs/platform-bun';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/** Context object passed to `PipelineExecutor.execute()` */
 export interface PipelineContext {
+  /** The request context for this invocation */
   ctx: RequestContext;
-  controllerInstance: any;
+  /** The resolved controller instance */
+  controllerInstance: unknown;
+  /** The name of the handler method to invoke */
   methodKey: string;
-  guards: Type<any>[];
-  pipes: Type<any>[];
-  interceptors: Type<any>[];
+  /** Guard classes to run before the handler */
+  guards: Type<CanActivate>[];
+  /** Pipe classes to apply to parameters */
+  pipes: Type<PipeTransform>[];
+  /** Interceptor classes to wrap the handler */
+  interceptors: Type<NemesisInterceptor>[];
+  /** Parameter metadata from `@Body`, `@Param`, etc. decorators */
   paramMetadata: RouteParamMetadata[];
+  /** The module reference, used for DI resolution of guards/pipes/interceptors */
   moduleRef: ModuleRef;
 }
 
+// ─── Helper Types ─────────────────────────────────────────────────────────────
+
+/** Shape of the controller instance for dynamic method invocation */
+type ControllerInstance = Record<string, (...args: unknown[]) => unknown>;
+
 // ─── PipelineExecutor ────────────────────────────────────────────────────────
 
+/**
+ * @class PipelineExecutor
+ * @classdesc Orchestrates the full request lifecycle: guard checks, parameter
+ * resolution, pipe transformation, interceptor wrapping, handler execution,
+ * and error serialization.
+ */
 export class PipelineExecutor {
   /**
    * Execute the full request pipeline and return a Response.
+   *
+   * @param {PipelineContext} context - All data needed to process this request
+   * @returns {Promise<Response>} The HTTP response
    */
   async execute(context: PipelineContext): Promise<Response> {
-    const { ctx, controllerInstance, methodKey, guards, pipes, interceptors, paramMetadata, moduleRef } = context;
+    const {
+      ctx,
+      controllerInstance,
+      methodKey,
+      guards,
+      pipes,
+      interceptors,
+      paramMetadata,
+      moduleRef,
+    } = context;
 
     try {
       // 1. Execute guards
@@ -54,8 +87,9 @@ export class PipelineExecutor {
       const args = await this.resolveParameters(ctx, paramMetadata, pipes, moduleRef);
 
       // 3. Build the handler function (wrapped by interceptors)
-      const handler = async (): Promise<any> => {
-        return controllerInstance[methodKey](...args);
+      const handler = async (): Promise<unknown> => {
+        const instance = controllerInstance as ControllerInstance;
+        return instance[methodKey](...args);
       };
 
       // 4. Execute with interceptors
@@ -68,38 +102,71 @@ export class PipelineExecutor {
     }
   }
 
-  // ─── Guards ──────────────────────────────────────────────────────────
+  // ─── Private: DI Resolution ──────────────────────────────────────────
 
+  /**
+   * Try to resolve a class from the module's DI container.
+   * Falls back to direct instantiation if the class is not registered.
+   *
+   * @template T - The type of the resolved instance
+   * @param {Type<T>} targetClass - The class to resolve
+   * @param {ModuleRef} moduleRef - The module's container to check first
+   * @returns {T} The resolved or directly instantiated instance
+   */
+  private resolveFromContainer<T>(targetClass: Type<T>, moduleRef: ModuleRef): T {
+    try {
+      return moduleRef.get<T>(targetClass);
+    } catch {
+      return new targetClass();
+    }
+  }
+
+  // ─── Private: Guards ─────────────────────────────────────────────────
+
+  /**
+   * Execute all guards for the current request. Throws `ForbiddenException`
+   * if any guard returns false.
+   *
+   * @param {Type<CanActivate>[]} guards - Guard classes to execute
+   * @param {RequestContext} ctx - The current request context
+   * @param {ModuleRef} moduleRef - Module for DI resolution
+   * @returns {Promise<void>}
+   * @throws {ForbiddenException} When any guard denies access
+   */
   private async executeGuards(
-    guards: Type<any>[],
+    guards: Type<CanActivate>[],
     ctx: RequestContext,
     moduleRef: ModuleRef,
   ): Promise<void> {
     for (const GuardClass of guards) {
-      let guard: CanActivate;
-      try {
-        guard = moduleRef.get(GuardClass);
-      } catch {
-        // Guard not in DI container; instantiate directly
-        guard = new GuardClass();
-      }
-
+      const guard = this.resolveFromContainer<CanActivate>(GuardClass, moduleRef);
       const executionContext = this.createExecutionContext(ctx);
       const canActivate = await guard.canActivate(executionContext);
+
       if (!canActivate) {
         throw new ForbiddenException();
       }
     }
   }
 
-  // ─── Parameter Resolution ────────────────────────────────────────────
+  // ─── Private: Parameter Resolution ──────────────────────────────────
 
+  /**
+   * Resolve all handler parameters from the request, applying pipes to each.
+   * If no parameter decorators are present, the `RequestContext` is passed as the first arg.
+   *
+   * @param {RequestContext} ctx - The current request context
+   * @param {RouteParamMetadata[]} paramMetadata - Registered parameter decorators
+   * @param {Type<PipeTransform>[]} pipes - Method-level pipe classes
+   * @param {ModuleRef} moduleRef - Module for DI resolution
+   * @returns {Promise<unknown[]>} Resolved and transformed argument array
+   */
   private async resolveParameters(
     ctx: RequestContext,
     paramMetadata: RouteParamMetadata[],
-    pipes: Type<any>[],
+    pipes: Type<PipeTransform>[],
     moduleRef: ModuleRef,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     if (paramMetadata.length === 0) {
       // If no parameter decorators, pass the RequestContext as first arg
       return [ctx];
@@ -107,11 +174,11 @@ export class PipelineExecutor {
 
     // Sort by index to ensure correct parameter order
     const sorted = [...paramMetadata].sort((a, b) => a.index - b.index);
-    const maxIndex = sorted.length > 0 ? Math.max(...sorted.map((p) => p.index)) : -1;
-    const args: any[] = new Array(maxIndex + 1).fill(undefined);
+    const maxIndex = Math.max(...sorted.map((p) => p.index));
+    const args: unknown[] = new Array(maxIndex + 1).fill(undefined);
 
     for (const param of sorted) {
-      let value = await this.extractParamValue(ctx, param);
+      let value: unknown = await this.extractParamValue(ctx, param);
 
       // Apply parameter-specific pipes
       if (param.pipes && param.pipes.length > 0) {
@@ -129,26 +196,33 @@ export class PipelineExecutor {
     return args;
   }
 
+  /**
+   * Extract a single parameter value from the request based on its decorator type.
+   *
+   * @param {RequestContext} ctx - The current request context
+   * @param {RouteParamMetadata} param - The parameter descriptor
+   * @returns {Promise<unknown>} The extracted value
+   */
   private async extractParamValue(
     ctx: RequestContext,
     param: RouteParamMetadata,
-  ): Promise<any> {
+  ): Promise<unknown> {
     switch (param.type) {
       case PARAM_TYPE.BODY: {
-        const body = await ctx.getBody();
-        return param.data ? body?.[param.data] : body;
+        const body = await ctx.getBody<Record<string, unknown>>();
+        return param.data !== undefined ? body?.[param.data] : body;
       }
       case PARAM_TYPE.QUERY: {
         if (param.data) {
-          return ctx.getQuery(param.data);
+          return ctx.getQueryParam(param.data);
         }
-        return ctx.getQueryAll();
+        return ctx.getQuery();
       }
       case PARAM_TYPE.PARAM: {
         if (param.data) {
           return ctx.getParam(param.data);
         }
-        return ctx.params;
+        return ctx.getParams();
       }
       case PARAM_TYPE.HEADERS: {
         if (param.data) {
@@ -157,26 +231,30 @@ export class PipelineExecutor {
         return ctx.getHeaders();
       }
       case PARAM_TYPE.REQUEST:
-        return ctx.request;
+        return ctx;
       default:
         return undefined;
     }
   }
 
+  /**
+   * Apply a series of pipe classes to a parameter value.
+   *
+   * @param {unknown} value - The raw parameter value
+   * @param {RouteParamMetadata} param - The parameter descriptor (for metadata)
+   * @param {Type<PipeTransform>[]} pipeClasses - Pipe classes to apply in order
+   * @param {ModuleRef} moduleRef - Module for DI resolution
+   * @returns {Promise<unknown>} The transformed value
+   */
   private async applyPipes(
-    value: any,
+    value: unknown,
     param: RouteParamMetadata,
-    pipeClasses: Type<any>[],
+    pipeClasses: Type<PipeTransform>[],
     moduleRef: ModuleRef,
-  ): Promise<any> {
-    let result = value;
+  ): Promise<unknown> {
+    let result: unknown = value;
     for (const PipeClass of pipeClasses) {
-      let pipe: PipeTransform;
-      try {
-        pipe = moduleRef.get(PipeClass);
-      } catch {
-        pipe = new PipeClass();
-      }
+      const pipe = this.resolveFromContainer<PipeTransform>(PipeClass, moduleRef);
       result = await pipe.transform(result, {
         type: param.type,
         data: param.data,
@@ -185,14 +263,23 @@ export class PipelineExecutor {
     return result;
   }
 
-  // ─── Interceptors ────────────────────────────────────────────────────
+  // ─── Private: Interceptors ───────────────────────────────────────────
 
+  /**
+   * Wrap the handler function with interceptors and execute the chain.
+   *
+   * @param {Type<NemesisInterceptor>[]} interceptors - Interceptor classes to apply
+   * @param {RequestContext} ctx - The current request context
+   * @param {() => Promise<unknown>} handler - The core handler function
+   * @param {ModuleRef} moduleRef - Module for DI resolution
+   * @returns {Promise<unknown>} The result after all interceptors and the handler
+   */
   private async executeWithInterceptors(
-    interceptors: Type<any>[],
+    interceptors: Type<NemesisInterceptor>[],
     ctx: RequestContext,
-    handler: () => Promise<any>,
+    handler: () => Promise<unknown>,
     moduleRef: ModuleRef,
-  ): Promise<any> {
+  ): Promise<unknown> {
     if (interceptors.length === 0) {
       return handler();
     }
@@ -201,12 +288,10 @@ export class PipelineExecutor {
     let next = handler;
     for (let i = interceptors.length - 1; i >= 0; i--) {
       const InterceptorClass = interceptors[i];
-      let interceptor: NemesisInterceptor;
-      try {
-        interceptor = moduleRef.get(InterceptorClass);
-      } catch {
-        interceptor = new InterceptorClass();
-      }
+      const interceptor = this.resolveFromContainer<NemesisInterceptor>(
+        InterceptorClass,
+        moduleRef,
+      );
 
       const currentNext = next;
       const executionContext = this.createExecutionContext(ctx);
@@ -219,9 +304,15 @@ export class PipelineExecutor {
     return next();
   }
 
-  // ─── Response Conversion ─────────────────────────────────────────────
+  // ─── Private: Response Conversion ────────────────────────────────────
 
-  private toResponse(result: any): Response {
+  /**
+   * Convert any handler return value into a `Response` object.
+   *
+   * @param {unknown} result - The value returned by the handler
+   * @returns {Response} An appropriate HTTP Response
+   */
+  private toResponse(result: unknown): Response {
     if (result instanceof Response) {
       return result;
     }
@@ -244,8 +335,15 @@ export class PipelineExecutor {
     });
   }
 
-  // ─── Error Handling ──────────────────────────────────────────────────
+  // ─── Private: Error Handling ─────────────────────────────────────────
 
+  /**
+   * Serialize an error into an appropriate HTTP error response.
+   * Uses `HttpException` for known exceptions; returns 500 for unknown ones.
+   *
+   * @param {unknown} error - The caught error value
+   * @returns {Response} The serialized error response
+   */
   private handleError(error: unknown): Response {
     if (error instanceof HttpException) {
       const response = error.getResponse();
@@ -260,34 +358,40 @@ export class PipelineExecutor {
       });
     }
 
-    // Unknown error
-    console.error('[NemesisJS] Unhandled error:', error);
+    // Unknown error — log and return 500
     const internalError = new InternalServerErrorException();
     return new Response(
       JSON.stringify({
-        statusCode: 500,
+        statusCode: internalError.getStatus(),
         message: 'Internal Server Error',
       }),
       {
-        status: 500,
+        status: internalError.getStatus(),
         headers: { 'Content-Type': 'application/json' },
       },
     );
   }
 
-  // ─── Execution Context ───────────────────────────────────────────────
+  // ─── Private: Execution Context ──────────────────────────────────────
 
-  private createExecutionContext(ctx: RequestContext): any {
+  /**
+   * Create an `ExecutionContext` from the current request, as required by guards
+   * and interceptors.
+   *
+   * @param {RequestContext} ctx - The current request context
+   * @returns {ExecutionContext} A minimal execution context implementation
+   */
+  private createExecutionContext(ctx: RequestContext): ExecutionContext {
     return {
-      getRequest: () => ctx.request,
-      getResponse: () => null,
-      getHandler: () => null,
-      getClass: () => null,
+      getRequest: <T = unknown>() => ctx.request as T,
+      getResponse: <T = unknown>() => null as T,
+      getHandler: () => () => undefined,
+      getClass: () => Object as unknown as Type<unknown>,
       getType: () => 'http',
       switchToHttp: () => ({
-        getRequest: () => ctx.request,
-        getResponse: () => null,
-        getNext: () => null,
+        getRequest: <T = unknown>() => ctx.request as T,
+        getResponse: <T = unknown>() => null as T,
+        getNext: <T = unknown>() => null as T,
       }),
     };
   }

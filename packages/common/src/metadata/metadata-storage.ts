@@ -10,10 +10,13 @@
  */
 
 import type {
+  CanActivate,
   ControllerMetadata,
   InjectableOptions,
   InjectionToken,
   ModuleMetadata,
+  NemesisInterceptor,
+  PipeTransform,
   RouteMetadata,
   RouteParamMetadata,
   Type,
@@ -24,55 +27,82 @@ import type {
 interface MethodMetadataMap {
   routes: Map<string | symbol, RouteMetadata>;
   params: Map<string | symbol, RouteParamMetadata[]>;
-  guards: Map<string | symbol, Type<any>[]>;
-  pipes: Map<string | symbol, Type<any>[]>;
-  interceptors: Map<string | symbol, Type<any>[]>;
+  guards: Map<string | symbol, Type<CanActivate>[]>;
+  pipes: Map<string | symbol, Type<PipeTransform>[]>;
+  interceptors: Map<string | symbol, Type<NemesisInterceptor>[]>;
 }
 
 // ─── MetadataStorage Singleton ───────────────────────────────────────────────
 
 class MetadataStorageImpl {
   /** Injectable class metadata (scope, etc.) */
-  private readonly injectables = new WeakMap<Type<any>, InjectableOptions>();
+  private injectables = new WeakMap<Type<unknown>, InjectableOptions>();
 
   /** Constructor parameter injection tokens: class -> [paramIndex -> token] */
-  private readonly injections = new WeakMap<Type<any>, Map<number, InjectionToken>>();
+  private injections = new WeakMap<Type<unknown>, Map<number, InjectionToken>>();
 
   /** Module metadata */
-  private readonly modules = new WeakMap<Type<any>, ModuleMetadata>();
+  private modules = new WeakMap<Type<unknown>, ModuleMetadata>();
 
   /** Controller metadata (route prefix) */
-  private readonly controllers = new WeakMap<Type<any>, ControllerMetadata>();
+  private controllers = new WeakMap<Type<unknown>, ControllerMetadata>();
 
   /** Method-level metadata for controllers */
-  private readonly methodMetadata = new WeakMap<Type<any>, MethodMetadataMap>();
+  private methodMetadata = new WeakMap<Type<unknown>, MethodMetadataMap>();
 
   /** Class-level guards */
-  private readonly classGuards = new WeakMap<Type<any>, Type<any>[]>();
+  private classGuards = new WeakMap<Type<unknown>, Type<CanActivate>[]>();
 
   /** Class-level pipes */
-  private readonly classPipes = new WeakMap<Type<any>, Type<any>[]>();
+  private classPipes = new WeakMap<Type<unknown>, Type<PipeTransform>[]>();
 
   /** Class-level interceptors */
-  private readonly classInterceptors = new WeakMap<Type<any>, Type<any>[]>();
+  private classInterceptors = new WeakMap<Type<unknown>, Type<NemesisInterceptor>[]>();
 
   // ─── Injectable ──────────────────────────────────────────────────────
 
-  setInjectable(target: Type<any>, options: InjectableOptions = {}): void {
+  /**
+   * Mark a class as injectable with the given options.
+   *
+   * @param {Type<unknown>} target - The class constructor to mark
+   * @param {InjectableOptions} options - Scope and other DI options
+   * @returns {void}
+   */
+  setInjectable(target: Type<unknown>, options: InjectableOptions = {}): void {
     this.injectables.set(target, options);
   }
 
-  getInjectable(target: Type<any>): InjectableOptions | undefined {
+  /**
+   * Get the injectable options for a class.
+   *
+   * @param {Type<unknown>} target - The class constructor
+   * @returns {InjectableOptions | undefined} The options, or undefined if not injectable
+   */
+  getInjectable(target: Type<unknown>): InjectableOptions | undefined {
     return this.injectables.get(target);
   }
 
-  isInjectable(target: Type<any>): boolean {
+  /**
+   * Check if a class is marked as injectable.
+   *
+   * @param {Type<unknown>} target - The class constructor
+   * @returns {boolean} True if the class is injectable
+   */
+  isInjectable(target: Type<unknown>): boolean {
     return this.injectables.has(target);
   }
 
   // ─── Constructor Injection ───────────────────────────────────────────
 
-  setInjection(target: Type<any>, paramIndex: number, token: InjectionToken): void {
+  /**
+   * Store the injection token for a constructor parameter.
+   *
+   * @param {Type<unknown>} target - The class constructor
+   * @param {number} paramIndex - The zero-based parameter index
+   * @param {InjectionToken} token - The injection token to use
+   * @returns {void}
+   */
+  setInjection(target: Type<unknown>, paramIndex: number, token: InjectionToken): void {
     let params = this.injections.get(target);
     if (!params) {
       params = new Map();
@@ -81,41 +111,91 @@ class MetadataStorageImpl {
     params.set(paramIndex, token);
   }
 
-  getInjections(target: Type<any>): Map<number, InjectionToken> {
+  /**
+   * Get all injection tokens for a class's constructor parameters.
+   *
+   * @param {Type<unknown>} target - The class constructor
+   * @returns {Map<number, InjectionToken>} Map of parameter index to injection token
+   */
+  getInjections(target: Type<unknown>): Map<number, InjectionToken> {
     return this.injections.get(target) ?? new Map();
   }
 
   // ─── Module ──────────────────────────────────────────────────────────
 
-  setModule(target: Type<any>, metadata: ModuleMetadata): void {
+  /**
+   * Store module metadata for a class decorated with `@Module`.
+   *
+   * @param {Type<unknown>} target - The module class
+   * @param {ModuleMetadata} metadata - The module configuration
+   * @returns {void}
+   */
+  setModule(target: Type<unknown>, metadata: ModuleMetadata): void {
     this.modules.set(target, metadata);
   }
 
-  getModule(target: Type<any>): ModuleMetadata | undefined {
+  /**
+   * Get the module metadata for a class.
+   *
+   * @param {Type<unknown>} target - The module class
+   * @returns {ModuleMetadata | undefined} The metadata, or undefined if not a module
+   */
+  getModule(target: Type<unknown>): ModuleMetadata | undefined {
     return this.modules.get(target);
   }
 
-  isModule(target: Type<any>): boolean {
+  /**
+   * Check if a class is decorated with `@Module`.
+   *
+   * @param {Type<unknown>} target - The class to check
+   * @returns {boolean} True if the class is a module
+   */
+  isModule(target: Type<unknown>): boolean {
     return this.modules.has(target);
   }
 
   // ─── Controller ──────────────────────────────────────────────────────
 
-  setController(target: Type<any>, metadata: ControllerMetadata): void {
+  /**
+   * Store controller metadata for a class decorated with `@Controller`.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {ControllerMetadata} metadata - The controller configuration
+   * @returns {void}
+   */
+  setController(target: Type<unknown>, metadata: ControllerMetadata): void {
     this.controllers.set(target, metadata);
   }
 
-  getController(target: Type<any>): ControllerMetadata | undefined {
+  /**
+   * Get the controller metadata for a class.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {ControllerMetadata | undefined} The metadata, or undefined if not a controller
+   */
+  getController(target: Type<unknown>): ControllerMetadata | undefined {
     return this.controllers.get(target);
   }
 
-  isController(target: Type<any>): boolean {
+  /**
+   * Check if a class is decorated with `@Controller`.
+   *
+   * @param {Type<unknown>} target - The class to check
+   * @returns {boolean} True if the class is a controller
+   */
+  isController(target: Type<unknown>): boolean {
     return this.controllers.has(target);
   }
 
   // ─── Method Metadata (Routes, Params, Guards, etc.) ──────────────────
 
-  private ensureMethodMetadata(target: Type<any>): MethodMetadataMap {
+  /**
+   * Ensure a MethodMetadataMap entry exists for a target and return it.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {MethodMetadataMap} The existing or newly created metadata map
+   */
+  private ensureMethodMetadata(target: Type<unknown>): MethodMetadataMap {
     let metadata = this.methodMetadata.get(target);
     if (!metadata) {
       metadata = {
@@ -132,18 +212,44 @@ class MetadataStorageImpl {
 
   // ─── Routes ──────────────────────────────────────────────────────────
 
-  setRoute(target: Type<any>, propertyKey: string | symbol, metadata: RouteMetadata): void {
+  /**
+   * Register a route handler metadata entry for a controller method.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @param {RouteMetadata} metadata - The route configuration
+   * @returns {void}
+   */
+  setRoute(target: Type<unknown>, propertyKey: string | symbol, metadata: RouteMetadata): void {
     const methodMeta = this.ensureMethodMetadata(target);
     methodMeta.routes.set(propertyKey, metadata);
   }
 
-  getRoutes(target: Type<any>): Map<string | symbol, RouteMetadata> {
+  /**
+   * Get all routes registered for a controller class.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {Map<string | symbol, RouteMetadata>} Map of method name to route metadata
+   */
+  getRoutes(target: Type<unknown>): Map<string | symbol, RouteMetadata> {
     return this.methodMetadata.get(target)?.routes ?? new Map();
   }
 
   // ─── Route Parameters ────────────────────────────────────────────────
 
-  setRouteParam(target: Type<any>, propertyKey: string | symbol, param: RouteParamMetadata): void {
+  /**
+   * Register a parameter decorator for a controller method parameter.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @param {RouteParamMetadata} param - The parameter configuration
+   * @returns {void}
+   */
+  setRouteParam(
+    target: Type<unknown>,
+    propertyKey: string | symbol,
+    param: RouteParamMetadata,
+  ): void {
     const methodMeta = this.ensureMethodMetadata(target);
     let params = methodMeta.params.get(propertyKey);
     if (!params) {
@@ -153,77 +259,190 @@ class MetadataStorageImpl {
     params.push(param);
   }
 
-  getRouteParams(target: Type<any>, propertyKey: string | symbol): RouteParamMetadata[] {
+  /**
+   * Get all parameter decorators for a controller method.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @returns {RouteParamMetadata[]} Array of parameter configurations
+   */
+  getRouteParams(target: Type<unknown>, propertyKey: string | symbol): RouteParamMetadata[] {
     return this.methodMetadata.get(target)?.params.get(propertyKey) ?? [];
   }
 
   // ─── Guards ──────────────────────────────────────────────────────────
 
-  setMethodGuards(target: Type<any>, propertyKey: string | symbol, guards: Type<any>[]): void {
+  /**
+   * Register method-level guards for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @param {Type<CanActivate>[]} guards - Guard classes to register
+   * @returns {void}
+   */
+  setMethodGuards(
+    target: Type<unknown>,
+    propertyKey: string | symbol,
+    guards: Type<CanActivate>[],
+  ): void {
     const methodMeta = this.ensureMethodMetadata(target);
     methodMeta.guards.set(propertyKey, guards);
   }
 
-  getMethodGuards(target: Type<any>, propertyKey: string | symbol): Type<any>[] {
+  /**
+   * Get method-level guards for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @returns {Type<CanActivate>[]} Array of registered guard classes
+   */
+  getMethodGuards(target: Type<unknown>, propertyKey: string | symbol): Type<CanActivate>[] {
     return this.methodMetadata.get(target)?.guards.get(propertyKey) ?? [];
   }
 
-  setClassGuards(target: Type<any>, guards: Type<any>[]): void {
+  /**
+   * Register class-level guards that apply to all routes in a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {Type<CanActivate>[]} guards - Guard classes to register
+   * @returns {void}
+   */
+  setClassGuards(target: Type<unknown>, guards: Type<CanActivate>[]): void {
     this.classGuards.set(target, guards);
   }
 
-  getClassGuards(target: Type<any>): Type<any>[] {
+  /**
+   * Get class-level guards for a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {Type<CanActivate>[]} Array of registered guard classes
+   */
+  getClassGuards(target: Type<unknown>): Type<CanActivate>[] {
     return this.classGuards.get(target) ?? [];
   }
 
   // ─── Pipes ───────────────────────────────────────────────────────────
 
-  setMethodPipes(target: Type<any>, propertyKey: string | symbol, pipes: Type<any>[]): void {
+  /**
+   * Register method-level pipes for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @param {Type<PipeTransform>[]} pipes - Pipe classes to register
+   * @returns {void}
+   */
+  setMethodPipes(
+    target: Type<unknown>,
+    propertyKey: string | symbol,
+    pipes: Type<PipeTransform>[],
+  ): void {
     const methodMeta = this.ensureMethodMetadata(target);
     methodMeta.pipes.set(propertyKey, pipes);
   }
 
-  getMethodPipes(target: Type<any>, propertyKey: string | symbol): Type<any>[] {
+  /**
+   * Get method-level pipes for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @returns {Type<PipeTransform>[]} Array of registered pipe classes
+   */
+  getMethodPipes(target: Type<unknown>, propertyKey: string | symbol): Type<PipeTransform>[] {
     return this.methodMetadata.get(target)?.pipes.get(propertyKey) ?? [];
   }
 
-  setClassPipes(target: Type<any>, pipes: Type<any>[]): void {
+  /**
+   * Register class-level pipes that apply to all routes in a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {Type<PipeTransform>[]} pipes - Pipe classes to register
+   * @returns {void}
+   */
+  setClassPipes(target: Type<unknown>, pipes: Type<PipeTransform>[]): void {
     this.classPipes.set(target, pipes);
   }
 
-  getClassPipes(target: Type<any>): Type<any>[] {
+  /**
+   * Get class-level pipes for a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {Type<PipeTransform>[]} Array of registered pipe classes
+   */
+  getClassPipes(target: Type<unknown>): Type<PipeTransform>[] {
     return this.classPipes.get(target) ?? [];
   }
 
   // ─── Interceptors ────────────────────────────────────────────────────
 
+  /**
+   * Register method-level interceptors for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @param {Type<NemesisInterceptor>[]} interceptors - Interceptor classes to register
+   * @returns {void}
+   */
   setMethodInterceptors(
-    target: Type<any>,
+    target: Type<unknown>,
     propertyKey: string | symbol,
-    interceptors: Type<any>[],
+    interceptors: Type<NemesisInterceptor>[],
   ): void {
     const methodMeta = this.ensureMethodMetadata(target);
     methodMeta.interceptors.set(propertyKey, interceptors);
   }
 
-  getMethodInterceptors(target: Type<any>, propertyKey: string | symbol): Type<any>[] {
+  /**
+   * Get method-level interceptors for a specific route handler.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {string | symbol} propertyKey - The method name
+   * @returns {Type<NemesisInterceptor>[]} Array of registered interceptor classes
+   */
+  getMethodInterceptors(
+    target: Type<unknown>,
+    propertyKey: string | symbol,
+  ): Type<NemesisInterceptor>[] {
     return this.methodMetadata.get(target)?.interceptors.get(propertyKey) ?? [];
   }
 
-  setClassInterceptors(target: Type<any>, interceptors: Type<any>[]): void {
+  /**
+   * Register class-level interceptors that apply to all routes in a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @param {Type<NemesisInterceptor>[]} interceptors - Interceptor classes to register
+   * @returns {void}
+   */
+  setClassInterceptors(target: Type<unknown>, interceptors: Type<NemesisInterceptor>[]): void {
     this.classInterceptors.set(target, interceptors);
   }
 
-  getClassInterceptors(target: Type<any>): Type<any>[] {
+  /**
+   * Get class-level interceptors for a controller.
+   *
+   * @param {Type<unknown>} target - The controller class
+   * @returns {Type<NemesisInterceptor>[]} Array of registered interceptor classes
+   */
+  getClassInterceptors(target: Type<unknown>): Type<NemesisInterceptor>[] {
     return this.classInterceptors.get(target) ?? [];
   }
 
   // ─── Clear (for testing) ─────────────────────────────────────────────
 
-  /** Clears all metadata. Primarily used in tests. */
+  /**
+   * Reset all stored metadata. Primarily used between tests to prevent
+   * metadata from leaking across test cases.
+   *
+   * @returns {void}
+   */
   clear(): void {
-    // WeakMaps self-clean when keys are GC'd.
-    // For testing, we just create a fresh instance.
+    this.injectables = new WeakMap();
+    this.injections = new WeakMap();
+    this.modules = new WeakMap();
+    this.controllers = new WeakMap();
+    this.methodMetadata = new WeakMap();
+    this.classGuards = new WeakMap();
+    this.classPipes = new WeakMap();
+    this.classInterceptors = new WeakMap();
   }
 }
 

@@ -7,8 +7,8 @@
 
 import {
   MetadataStorage,
+  joinPaths,
   type Type,
-  type HttpMethod,
 } from '@nemesisjs/common';
 import type { ModuleRef } from '@nemesisjs/core';
 import { RequestContext } from '@nemesisjs/platform-bun';
@@ -28,8 +28,11 @@ export class RouteCollector {
 
   /**
    * Scan all modules and register controller routes.
+   *
+   * @param {Map<Type<unknown>, ModuleRef>} modules - Map of all loaded modules
+   * @returns {void}
    */
-  collectRoutes(modules: Map<Type<any>, ModuleRef>): void {
+  collectRoutes(modules: Map<Type<unknown>, ModuleRef>): void {
     for (const [, moduleRef] of modules) {
       const controllers = moduleRef.getControllers();
 
@@ -41,7 +44,14 @@ export class RouteCollector {
 
   // ─── Private ─────────────────────────────────────────────────────────
 
-  private registerController(controllerClass: Type<any>, moduleRef: ModuleRef): void {
+  /**
+   * Register all routes for a single controller class.
+   *
+   * @param {Type<unknown>} controllerClass - The controller class to register
+   * @param {ModuleRef} moduleRef - The module that owns this controller
+   * @returns {void}
+   */
+  private registerController(controllerClass: Type<unknown>, moduleRef: ModuleRef): void {
     const controllerMeta = MetadataStorage.getController(controllerClass);
     if (!controllerMeta) return;
 
@@ -55,7 +65,7 @@ export class RouteCollector {
 
     for (const [propertyKey, routeMeta] of routes) {
       // Build full path: globalPrefix + controllerPrefix + routePath
-      const fullPath = this.buildPath(this.globalPrefix, prefix, routeMeta.path);
+      const fullPath = joinPaths(this.globalPrefix, prefix, routeMeta.path);
 
       // Get method-level guards/pipes/interceptors
       const methodGuards = MetadataStorage.getMethodGuards(controllerClass, propertyKey);
@@ -100,12 +110,5 @@ export class RouteCollector {
       });
     }
   }
-
-  private buildPath(...parts: string[]): string {
-    const joined = parts
-      .map((p) => p.replace(/^\/+|\/+$/g, ''))
-      .filter((p) => p.length > 0)
-      .join('/');
-    return '/' + joined;
-  }
 }
+

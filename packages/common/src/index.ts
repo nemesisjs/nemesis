@@ -9,13 +9,14 @@
 export {
   HTTP_STATUS,
   HTTP_METHODS,
-  METADATA_KEYS,
   SCOPE,
   PARAM_TYPE,
+  LOG_LEVELS,
   type HttpStatusCode,
   type HttpMethod,
   type Scope,
   type ParamType,
+  type LogLevel,
 } from './constants.js';
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
@@ -48,7 +49,6 @@ export type {
   ExceptionFilter,
   ApplicationOptions,
   CorsOptions,
-  LogLevel,
   InjectableOptions,
 } from './interfaces/index.js';
 
@@ -95,3 +95,7 @@ export {
 
 // ─── Metadata Storage ────────────────────────────────────────────────────────
 export { MetadataStorage } from './metadata/metadata-storage.js';
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+export { normalizePath, joinPaths } from './utils/path.js';
+

@@ -11,6 +11,9 @@ import { MetadataStorage } from '../metadata/metadata-storage.js';
 /**
  * Binds interceptors to the scope of the controller or method.
  *
+ * @param {...Type<NemesisInterceptor>} interceptors - Interceptor classes to apply
+ * @returns {ClassDecorator & MethodDecorator} The decorator function
+ *
  * @example
  * ```ts
  * @UseInterceptors(LoggingInterceptor, TransformInterceptor)
@@ -27,13 +30,10 @@ export function UseInterceptors(
     _descriptor?: PropertyDescriptor,
   ) => {
     if (propertyKey !== undefined) {
-      MetadataStorage.setMethodInterceptors(
-        (target as any).constructor as Type<any>,
-        propertyKey,
-        interceptors,
-      );
+      const constructor = (target as { constructor: Type<unknown> }).constructor;
+      MetadataStorage.setMethodInterceptors(constructor, propertyKey, interceptors);
     } else {
-      MetadataStorage.setClassInterceptors(target as Type<any>, interceptors);
+      MetadataStorage.setClassInterceptors(target as Type<unknown>, interceptors);
     }
   };
 }

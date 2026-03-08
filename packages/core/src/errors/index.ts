@@ -4,6 +4,7 @@
  * Framework-level errors for DI resolution, module loading, and lifecycle issues.
  */
 
+/** Base class for all NemesisJS framework errors. */
 export class NemesisError extends Error {
   constructor(message: string) {
     super(message);
@@ -11,6 +12,12 @@ export class NemesisError extends Error {
   }
 }
 
+/**
+ * Thrown when a circular dependency is detected during DI resolution.
+ *
+ * @example
+ * ServiceA depends on ServiceB which depends on ServiceA.
+ */
 export class CircularDependencyError extends NemesisError {
   constructor(token: string) {
     super(
@@ -20,9 +27,14 @@ export class CircularDependencyError extends NemesisError {
   }
 }
 
+/**
+ * Thrown when no provider is registered for a given token.
+ */
 export class UnknownTokenError extends NemesisError {
-  constructor(token: string | symbol) {
-    const tokenStr = typeof token === 'symbol' ? token.toString() : token;
+  /**
+   * @param {string} tokenStr - The already-stringified token name
+   */
+  constructor(tokenStr: string) {
     super(
       `No provider found for token "${tokenStr}". ` +
         `Make sure it is registered in the module's providers array.`,
@@ -30,7 +42,14 @@ export class UnknownTokenError extends NemesisError {
   }
 }
 
+/**
+ * Thrown when a provider token exists in context but not in a specific module.
+ */
 export class ProviderNotFoundError extends NemesisError {
+  /**
+   * @param {string | symbol} token - The injection token that was not found
+   * @param {string} moduleName - The module that was searched
+   */
   constructor(token: string | symbol, moduleName: string) {
     const tokenStr = typeof token === 'symbol' ? token.toString() : token;
     super(
@@ -40,7 +59,13 @@ export class ProviderNotFoundError extends NemesisError {
   }
 }
 
+/**
+ * Thrown when a class decorated with @Module cannot be found.
+ */
 export class ModuleNotFoundError extends NemesisError {
+  /**
+   * @param {string} moduleName - The class name that was not found
+   */
   constructor(moduleName: string) {
     super(
       `Module "${moduleName}" was not found. ` +
@@ -49,8 +74,14 @@ export class ModuleNotFoundError extends NemesisError {
   }
 }
 
+/**
+ * Thrown when a provider configuration object is not valid.
+ */
 export class InvalidProviderError extends NemesisError {
-  constructor(provider: any) {
+  /**
+   * @param {unknown} provider - The invalid provider value
+   */
+  constructor(provider: unknown) {
     super(
       `Invalid provider configuration: ${JSON.stringify(provider)}. ` +
         `A provider must be a class or an object with { provide, useClass|useValue|useFactory|useExisting }.`,
@@ -58,7 +89,14 @@ export class InvalidProviderError extends NemesisError {
   }
 }
 
+/**
+ * Thrown when a constructor parameter is missing a required `@Inject` token.
+ */
 export class MissingInjectionTokenError extends NemesisError {
+  /**
+   * @param {string} className - The class with the missing token
+   * @param {number} paramIndex - The zero-based parameter index
+   */
   constructor(className: string, paramIndex: number) {
     super(
       `Missing injection token for parameter at index ${paramIndex} in "${className}". ` +

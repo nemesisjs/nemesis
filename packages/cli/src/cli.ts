@@ -64,7 +64,6 @@ export class CLI {
       }
 
       case 'serve': {
-        const { $ } = await import('bun');
         console.log('Starting NemesisJS dev server with hot reload...');
         const proc = Bun.spawn(['bun', '--hot', 'src/main.ts'], {
           stdio: ['inherit', 'inherit', 'inherit'],
