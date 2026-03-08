@@ -1,6 +1,22 @@
-# NemesisJS
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nemesisjs/nemesis/main/assets/nemesis-logo.png" width="300" alt="NemesisJS Logo" />
+</p>
 
-NemesisJS is a modern, TypeScript first routing and dependency injection framework for building robust HTTP applications. This repository serves as the core monorepo for the NemesisJS ecosystem, providing essential tools and packages.
+<h1 align="center">NemesisJS</h1>
+
+<p align="center">
+  A modern, TypeScript first routing and dependency injection framework for building robust HTTP applications.
+</p>
+
+<p align="center">
+  <a href="https://npmjs.com/package/@nemesisjs/core" target="_blank"><img src="https://img.shields.io/npm/v/@nemesisjs/core.svg" alt="NPM Version" /></a>
+  <a href="https://npmjs.com/package/@nemesisjs/core" target="_blank"><img src="https://img.shields.io/npm/l/@nemesisjs/core.svg" alt="Package License" /></a>
+  <a href="https://npmjs.com/package/@nemesisjs/core" target="_blank"><img src="https://img.shields.io/npm/dm/@nemesisjs/core.svg" alt="NPM Downloads" /></a>
+</p>
+
+<hr/>
+
+This repository serves as the core monorepo for the NemesisJS ecosystem, providing all essential tools and packages.
 
 ## Ecosystem
 
