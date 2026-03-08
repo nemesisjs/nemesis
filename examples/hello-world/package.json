@@ -1,0 +1,21 @@
+{
+  "name": "hello-world-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/main.ts",
+    "start": "bun src/main.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@nemesisjs/common": "workspace:*",
+    "@nemesisjs/core": "workspace:*",
+    "@nemesisjs/http": "workspace:*",
+    "@nemesisjs/platform-bun": "workspace:*"
+  },
+  "devDependencies": {
+    "@nemesisjs/testing": "workspace:*",
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  }
+}

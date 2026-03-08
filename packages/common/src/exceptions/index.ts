@@ -1,0 +1,16 @@
+export {
+  HttpException,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+  MethodNotAllowedException,
+  ConflictException,
+  UnprocessableEntityException,
+  TooManyRequestsException,
+  InternalServerErrorException,
+  NotImplementedException,
+  BadGatewayException,
+  ServiceUnavailableException,
+  GatewayTimeoutException,
+} from './http-exception.js';

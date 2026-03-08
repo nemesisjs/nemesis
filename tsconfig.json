@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022"],
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "@nemesisjs/common": ["./packages/common/src"],
+      "@nemesisjs/common/*": ["./packages/common/src/*"],
+      "@nemesisjs/core": ["./packages/core/src"],
+      "@nemesisjs/core/*": ["./packages/core/src/*"],
+      "@nemesisjs/platform-bun": ["./packages/platform-bun/src"],
+      "@nemesisjs/platform-bun/*": ["./packages/platform-bun/src/*"],
+      "@nemesisjs/http": ["./packages/http/src"],
+      "@nemesisjs/http/*": ["./packages/http/src/*"],
+      "@nemesisjs/testing": ["./packages/testing/src"],
+      "@nemesisjs/testing/*": ["./packages/testing/src/*"],
+      "@nemesisjs/cli": ["./packages/cli/src"],
+      "@nemesisjs/cli/*": ["./packages/cli/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}

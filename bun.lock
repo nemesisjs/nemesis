@@ -1,0 +1,108 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "nemesisjs-monorepo",
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/cli": {
+      "name": "@nemesisjs/cli",
+      "version": "0.1.0",
+      "bin": {
+        "nemesis": "./bin/nemesis.ts",
+      },
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/common": {
+      "name": "@nemesisjs/common",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/core": {
+      "name": "@nemesisjs/core",
+      "version": "0.1.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/http": {
+      "name": "@nemesisjs/http",
+      "version": "0.1.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+        "@nemesisjs/core": "workspace:*",
+        "@nemesisjs/platform-bun": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/platform-bun": {
+      "name": "@nemesisjs/platform-bun",
+      "version": "0.1.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+        "@nemesisjs/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+    "packages/testing": {
+      "name": "@nemesisjs/testing",
+      "version": "0.1.0",
+      "dependencies": {
+        "@nemesisjs/common": "workspace:*",
+        "@nemesisjs/core": "workspace:*",
+        "@nemesisjs/http": "workspace:*",
+        "@nemesisjs/platform-bun": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
+  },
+  "packages": {
+    "@nemesisjs/cli": ["@nemesisjs/cli@workspace:packages/cli"],
+
+    "@nemesisjs/common": ["@nemesisjs/common@workspace:packages/common"],
+
+    "@nemesisjs/core": ["@nemesisjs/core@workspace:packages/core"],
+
+    "@nemesisjs/http": ["@nemesisjs/http@workspace:packages/http"],
+
+    "@nemesisjs/platform-bun": ["@nemesisjs/platform-bun@workspace:packages/platform-bun"],
+
+    "@nemesisjs/testing": ["@nemesisjs/testing@workspace:packages/testing"],
+
+    "@types/bun": ["@types/bun@1.3.10", "", { "dependencies": { "bun-types": "1.3.10" } }, "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ=="],
+
+    "@types/node": ["@types/node@25.3.5", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-oX8xrhvpiyRCQkG1MFchB09f+cXftgIXb3a7UUa4Y3wpmZPw5tyZGTLWhlESOLq1Rq6oDlc8npVU2/9xiCuXMA=="],
+
+    "bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
+
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "undici-types": ["undici-types@7.18.2", "", {}, "sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w=="],
+  }
+}

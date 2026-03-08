@@ -1,0 +1,175 @@
+/**
+ * @nemesisjs/core - NemesisApplication
+ *
+ * The main application class. Created by NemesisFactory.create().
+ * Holds the DI container, module graph, HTTP server adapter, and lifecycle manager.
+ */
+
+import type {
+  ApplicationOptions,
+  InjectionToken,
+  Type,
+} from '@nemesisjs/common';
+import { DIContainer } from '../container/container.js';
+import { LifecycleManager } from '../lifecycle/lifecycle-manager.js';
+import { ModuleLoader } from '../module/module-loader.js';
+import type { ModuleRef } from '../module/module-ref.js';
+import type { NemesisApplicationInterface, ServerAdapter } from '../interfaces/index.js';
+
+export class NemesisApplication implements NemesisApplicationInterface {
+  private readonly rootModule: Type<any>;
+  private readonly options: ApplicationOptions;
+  private moduleLoader!: ModuleLoader;
+  private lifecycleManager!: LifecycleManager;
+  private modules!: Map<Type<any>, ModuleRef>;
+  private adapter?: ServerAdapter;
+  private globalPrefix: string = '';
+  private initialized: boolean = false;
+
+  constructor(rootModule: Type<any>, options: ApplicationOptions = {}) {
+    this.rootModule = rootModule;
+    this.options = options;
+    if (options.globalPrefix) {
+      this.globalPrefix = options.globalPrefix;
+    }
+  }
+
+  /**
+   * Initialize the application: load modules, resolve DI, run lifecycle hooks.
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+
+    // Load all modules
+    this.moduleLoader = new ModuleLoader();
+    this.modules = await this.moduleLoader.load(this.rootModule);
+
+    // Create lifecycle manager
+    this.lifecycleManager = new LifecycleManager(this.modules);
+
+    // Run onModuleInit hooks
+    await this.lifecycleManager.callOnModuleInit();
+
+    // Run onApplicationBootstrap hooks
+    await this.lifecycleManager.callOnApplicationBootstrap();
+
+    this.initialized = true;
+  }
+
+  /**
+   * Set the HTTP server adapter.
+   */
+  setAdapter(adapter: ServerAdapter): void {
+    this.adapter = adapter;
+  }
+
+  /**
+   * Get the HTTP server adapter.
+   */
+  getAdapter(): ServerAdapter | undefined {
+    return this.adapter;
+  }
+
+  /**
+   * Start the HTTP server.
+   */
+  async listen(port: number, host: string = '0.0.0.0'): Promise<void> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    if (!this.adapter) {
+      throw new Error(
+        'No server adapter configured. Use @nemesisjs/platform-bun to create an HTTP server.',
+      );
+    }
+
+    await this.adapter.listen(port, host);
+  }
+
+  /**
+   * Gracefully shut down the application.
+   */
+  async close(): Promise<void> {
+    if (this.adapter) {
+      await this.adapter.close();
+    }
+
+    if (this.lifecycleManager) {
+      await this.lifecycleManager.callOnModuleDestroy();
+      await this.lifecycleManager.callOnApplicationShutdown();
+    }
+  }
+
+  /**
+   * Resolve a provider from any module by its token.
+   * Searches the root module first, then all modules.
+   */
+  get<T>(token: InjectionToken<T>): T {
+    // Try root module first
+    const rootRef = this.modules.get(this.rootModule);
+    if (rootRef?.has(token)) {
+      return rootRef.get<T>(token);
+    }
+
+    // Search all modules
+    for (const [, moduleRef] of this.modules) {
+      if (moduleRef.has(token)) {
+        return moduleRef.get<T>(token);
+      }
+    }
+
+    // Try resolving from any container
+    throw new Error(`Provider not found for token: ${String(token)}`);
+  }
+
+  /**
+   * Get the URL the server is listening on.
+   */
+  getUrl(): string {
+    return this.adapter?.getUrl() ?? '';
+  }
+
+  /**
+   * Get the global route prefix.
+   */
+  getGlobalPrefix(): string {
+    return this.globalPrefix;
+  }
+
+  /**
+   * Set the global route prefix.
+   */
+  setGlobalPrefix(prefix: string): this {
+    this.globalPrefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+    return this;
+  }
+
+  /**
+   * Get the module loader (for introspection).
+   */
+  getModuleLoader(): ModuleLoader {
+    return this.moduleLoader;
+  }
+
+  /**
+   * Get all loaded modules.
+   */
+  getModules(): Map<Type<any>, ModuleRef> {
+    return this.modules;
+  }
+
+  /**
+   * Get the root module class.
+   */
+  getRootModule(): Type<any> {
+    return this.rootModule;
+  }
+
+  /**
+   * Get application options.
+   */
+  getOptions(): ApplicationOptions {
+    return this.options;
+  }
+}

@@ -1,0 +1,24 @@
+/**
+ * @nemesisjs/core - Internal interfaces
+ */
+
+import type { ApplicationOptions, InjectionToken, Type } from '@nemesisjs/common';
+
+export interface NemesisApplicationInterface {
+  listen(port: number, host?: string): Promise<void>;
+  close(): Promise<void>;
+  get<T>(token: InjectionToken<T>): T;
+  getUrl(): string;
+}
+
+export interface ServerAdapter {
+  listen(port: number, host?: string): Promise<void>;
+  close(): Promise<void>;
+  getUrl(): string;
+  setRequestHandler(handler: (request: Request) => Promise<Response>): void;
+}
+
+export interface ApplicationCreateOptions extends ApplicationOptions {
+  /** Custom server adapter (defaults to Bun adapter) */
+  adapter?: ServerAdapter;
+}
