@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Param, Inject } from '@nemesisjs/common';
+import { Controller, Get, Post, Body, Param } from '@nemesisjs/common';
 import { NotFoundException } from '@nemesisjs/common';
 import type { RequestContext } from '@nemesisjs/http';
 import { UserService } from './user.service.js';
 
 @Controller('/users')
 export class UserController {
-  constructor(@Inject(UserService) private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get('/')
   findAll(ctx: RequestContext) {

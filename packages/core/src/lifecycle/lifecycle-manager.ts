@@ -120,13 +120,10 @@ export class LifecycleManager {
               await instance[hook]();
             }
           }
-        } catch (error) {
-          // Log hook errors but don't let them block other providers' hooks
-          // from running. The provider may simply not be resolvable at this stage.
-          console.warn(
-            `[NemesisJS] Lifecycle hook "${hook}" failed for token "${String(token)}":`,
-            error,
-          );
+        } catch {
+          // Silently skip providers that are not resolvable or that fail during
+          // lifecycle hook execution. This can happen for symbol tokens or
+          // providers whose dependencies were already torn down.
         }
       }
     }

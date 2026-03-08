@@ -15,6 +15,9 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target bun",
     "test": "bun test"
   },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  },
   "peerDependencies": {},
   "devDependencies": {
     "typescript": "^5.7.0",

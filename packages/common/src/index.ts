@@ -2,8 +2,12 @@
  * @nemesisjs/common
  *
  * Core decorators, interfaces, exceptions, and constants for the NemesisJS framework.
- * This package has zero runtime dependencies.
+ * Imports reflect-metadata once to enable emitDecoratorMetadata support across the framework.
  */
+
+// Must be the first import — polyfills Reflect.defineMetadata / Reflect.getMetadata
+// so that emitDecoratorMetadata: true works for implicit constructor-param injection.
+import 'reflect-metadata';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 export {

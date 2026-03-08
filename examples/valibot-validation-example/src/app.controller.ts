@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Inject } from '@nemesisjs/common';
+import { Controller, Get, Post, Body } from '@nemesisjs/common';
 import { UseSchema } from '@nemesisjs/validation';
 import type { RequestContext } from '@nemesisjs/http';
 import { AppService } from './app.service.js';
@@ -10,11 +10,11 @@ const createProductSchema = v.object({
   inStock: v.optional(v.boolean()),
 });
 
-type CreateProductDto = v.Output<typeof createProductSchema>;
+type CreateProductDto = v.InferOutput<typeof createProductSchema>;
 
 @Controller('/')
 export class AppController {
-  constructor(@Inject(AppService) private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get('/')
   getHello(ctx: RequestContext) {
@@ -22,14 +22,14 @@ export class AppController {
   }
 
   @Post('/products')
-  createProduct(
-    @Body() @UseSchema(createProductSchema) body: CreateProductDto,
-    ctx: RequestContext
-  ) {
-    return ctx.json({ 
-      success: true, 
-      message: 'Product created successfully',
-      product: body 
-    }, 201);
+  createProduct(@Body() @UseSchema(createProductSchema) body: CreateProductDto, ctx: RequestContext) {
+    return ctx.json(
+      {
+        success: true,
+        message: 'Product created successfully',
+        product: body,
+      },
+      201,
+    );
   }
 }

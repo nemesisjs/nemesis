@@ -1,10 +1,10 @@
-import { Controller, Get, Inject } from '@nemesisjs/common';
+import { Controller, Get } from '@nemesisjs/common';
 import type { RequestContext } from '@nemesisjs/http';
 import { AppService } from './app.service.js';
 
 @Controller('/')
 export class AppController {
-  constructor(@Inject(AppService) private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get('/')
   getHello(ctx: RequestContext) {
