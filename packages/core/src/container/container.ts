@@ -29,6 +29,7 @@ import {
   MissingInjectionTokenError,
   UnknownTokenError,
 } from '../errors/index.js';
+import type { ILogger } from '@nemesisjs/common';
 
 // ─── Provider Record ─────────────────────────────────────────────────────────
 
@@ -64,6 +65,16 @@ function tokenToString(token: InjectionToken): string {
 export class DIContainer {
   private readonly providers = new Map<InjectionToken, ProviderRecord>();
   private readonly resolving = new Set<InjectionToken>();
+  private logger?: ILogger;
+
+  /**
+   * Inject a logger into the container.
+   *
+   * @param {ILogger} logger - The logger instance
+   */
+  setLogger(logger: ILogger): void {
+    this.logger = logger;
+  }
 
   /**
    * Register a provider in the container.
@@ -78,6 +89,7 @@ export class DIContainer {
   register<T>(provider: Provider<T>): void {
     const record = this.normalizeProvider(provider);
     this.providers.set(record.token, record as ProviderRecord);
+    this.logger?.verbose?.(`Registered provider: ${tokenToString(record.token as InjectionToken)}`, 'DIContainer');
   }
 
   /**
@@ -89,8 +101,9 @@ export class DIContainer {
    */
   registerWithToken<T>(token: InjectionToken<T>, provider: Provider<T>): void {
     const record = this.normalizeProvider(provider);
-    record.token = token as InjectionToken<T>;
-    this.providers.set(token as InjectionToken<T>, record as ProviderRecord<T>);
+    record.token = token;
+    this.providers.set(token as InjectionToken, record as ProviderRecord);
+    this.logger?.verbose?.(`Registered provider: ${tokenToString(token as InjectionToken)}`, 'DIContainer');
   }
 
   /**
@@ -115,9 +128,11 @@ export class DIContainer {
 
     // Detect circular dependency
     if (this.resolving.has(token as InjectionToken)) {
+      this.logger?.error(`Circular dependency detected for token: ${tokenToString(token as InjectionToken)}`, undefined, 'DIContainer');
       throw new CircularDependencyError(tokenToString(token as InjectionToken));
     }
 
+    this.logger?.debug?.(`Resolving provider: ${tokenToString(token as InjectionToken)}`, 'DIContainer');
     this.resolving.add(token as InjectionToken);
     try {
       const instance = this.resolve<T>(record as ProviderRecord<T>);

@@ -9,7 +9,9 @@ import type {
   ApplicationOptions,
   InjectionToken,
   Type,
+  ILogger,
 } from '@nemesisjs/common';
+import { ConsoleLogger } from '@nemesisjs/common';
 
 import { LifecycleManager } from '../lifecycle/lifecycle-manager.js';
 import { ModuleLoader } from '../module/module-loader.js';
@@ -19,6 +21,7 @@ import type { NemesisApplicationInterface, ServerAdapter } from '../interfaces/i
 export class NemesisApplication implements NemesisApplicationInterface {
   private readonly rootModule: Type<any>;
   private readonly options: ApplicationOptions;
+  private readonly logger: ILogger;
   private moduleLoader!: ModuleLoader;
   private lifecycleManager!: LifecycleManager;
   private modules!: Map<Type<any>, ModuleRef>;
@@ -32,6 +35,24 @@ export class NemesisApplication implements NemesisApplicationInterface {
     if (options.globalPrefix) {
       this.globalPrefix = options.globalPrefix;
     }
+
+    // Initialize the logger
+    if (typeof options.logger === 'object' && 'log' in options.logger) {
+      // User provided a custom logger instance
+      this.logger = options.logger;
+    } else if (options.logger === false) {
+      // User explicitly disabled logging, provide a no-op logger
+      this.logger = {
+        log: () => {},
+        error: () => {},
+        warn: () => {},
+        debug: () => {},
+        verbose: () => {},
+      };
+    } else {
+      // Default to the beautiful ConsoleLogger
+      this.logger = new ConsoleLogger('Nemesis');
+    }
   }
 
   /**
@@ -40,8 +61,10 @@ export class NemesisApplication implements NemesisApplicationInterface {
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    this.logger.log('Starting application initialization...');
+
     // Load all modules
-    this.moduleLoader = new ModuleLoader();
+    this.moduleLoader = new ModuleLoader(this.logger);
     this.modules = await this.moduleLoader.load(this.rootModule);
 
     // Create lifecycle manager
@@ -53,6 +76,7 @@ export class NemesisApplication implements NemesisApplicationInterface {
     // Run onApplicationBootstrap hooks
     await this.lifecycleManager.callBootstrap(this.modules);
 
+    this.logger.log('Application successfully initialized');
     this.initialized = true;
   }
 
@@ -85,6 +109,7 @@ export class NemesisApplication implements NemesisApplicationInterface {
     }
 
     await this.adapter.listen(port, host);
+    this.logger.log(`Server listening on ${this.getUrl()}`);
   }
 
   /**
@@ -171,5 +196,12 @@ export class NemesisApplication implements NemesisApplicationInterface {
    */
   getOptions(): ApplicationOptions {
     return this.options;
+  }
+
+  /**
+   * Get the configured logger instance.
+   */
+  getLogger(): ILogger {
+    return this.logger;
   }
 }

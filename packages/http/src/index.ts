@@ -6,6 +6,7 @@
 
 // ─── Main Entry Point ────────────────────────────────────────────────────────
 export { createHttpApp, type HttpApplicationOptions } from './http-application.js';
+export { NemesisApp } from './nemesis-app.js';
 
 // ─── Router ──────────────────────────────────────────────────────────────────
 export { HttpRouter, type RouteEntry, type RouteMatch, type RouteHandler } from './router/router.js';

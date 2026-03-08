@@ -183,7 +183,7 @@ export interface ApplicationOptions {
   /** Global prefix for all routes */
   globalPrefix?: string;
   /** Logger configuration */
-  logger?: boolean | LogLevel[];
+  logger?: boolean | LogLevel[] | import('../logger/logger.interface.js').ILogger;
 }
 
 export interface CorsOptions {
@@ -203,3 +203,6 @@ export interface InjectableOptions {
 
 // ─── Re-export log level type for backwards compat ───────────────────────────
 export type { LogLevel } from '../constants.js';
+
+// ─── Logger Re-exports ───────────────────────────────────────────────────────
+export type { ILogger } from '../logger/logger.interface.js';

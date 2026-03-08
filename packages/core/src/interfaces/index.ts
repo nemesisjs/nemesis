@@ -2,7 +2,7 @@
  * @nemesisjs/core - Internal interfaces
  */
 
-import type { ApplicationOptions, InjectionToken, Type } from '@nemesisjs/common';
+import type { ApplicationOptions, InjectionToken } from '@nemesisjs/common';
 
 export interface NemesisApplicationInterface {
   listen(port: number, host?: string): Promise<void>;

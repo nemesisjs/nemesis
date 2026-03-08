@@ -15,7 +15,8 @@
     "test:unit": "bun test packages/",
     "test:e2e": "bun test tests/e2e/",
     "clean": "rm -rf packages/*/dist",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev:example": "cd examples/hello-world && bun run dev"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

@@ -98,4 +98,7 @@ export { MetadataStorage } from './metadata/metadata-storage.js';
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 export { normalizePath, joinPaths } from './utils/path.js';
-
+// ─── Logger ──────────────────────────────────────────────────────────────────
+export { type ILogger } from './logger/logger.interface.js';
+export { ConsoleLogger } from './logger/console-logger.service.js';
+export { Colors, colorize, type ColorCode } from './logger/colors.js';

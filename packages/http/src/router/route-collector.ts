@@ -8,7 +8,9 @@
 import {
   MetadataStorage,
   joinPaths,
+  colorize,
   type Type,
+  type ILogger,
 } from '@nemesisjs/common';
 import type { ModuleRef } from '@nemesisjs/core';
 import { RequestContext } from '@nemesisjs/platform-bun';
@@ -19,11 +21,18 @@ export class RouteCollector {
   private readonly router: HttpRouter;
   private readonly pipeline: PipelineExecutor;
   private readonly globalPrefix: string;
+  private readonly logger?: ILogger;
 
-  constructor(router: HttpRouter, pipeline: PipelineExecutor, globalPrefix: string = '') {
+  constructor(
+    router: HttpRouter,
+    pipeline: PipelineExecutor,
+    globalPrefix: string = '',
+    logger?: ILogger,
+  ) {
     this.router = router;
     this.pipeline = pipeline;
     this.globalPrefix = globalPrefix;
+    this.logger = logger;
   }
 
   /**
@@ -108,6 +117,28 @@ export class RouteCollector {
         controllerClass,
         methodKey: propertyKey,
       });
+
+      // Log the mapped route beautifully: [RouterExplorer] Mapped {/users, GET} route
+      if (this.logger?.log) {
+        const methodColor = this.getMethodColor(routeMeta.method);
+        const coloredMethod = colorize(routeMeta.method, methodColor);
+        const coloredPath = colorize(fullPath === '' ? '/' : fullPath, 'brightCyan');
+        this.logger.log(`Mapped {${coloredPath}, ${coloredMethod}} route`, 'RouterExplorer');
+      }
+    }
+  }
+
+  /**
+   * Helper to colorize HTTP methods for better aesthetic logging.
+   */
+  private getMethodColor(method: string): import('@nemesisjs/common').ColorCode {
+    switch (method.toUpperCase()) {
+      case 'GET': return 'brightBlue';
+      case 'POST': return 'brightGreen';
+      case 'PUT': return 'brightYellow';
+      case 'DELETE': return 'brightRed';
+      case 'PATCH': return 'brightMagenta';
+      default: return 'brightWhite';
     }
   }
 }

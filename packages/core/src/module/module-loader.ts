@@ -13,6 +13,7 @@ import {
   type ModuleMetadata,
   type Provider,
   type Type,
+  type ILogger,
 } from '@nemesisjs/common';
 import { ModuleNotFoundError } from '../errors/index.js';
 import { ModuleRef } from './module-ref.js';
@@ -25,6 +26,11 @@ import { ModuleRef } from './module-ref.js';
 export class ModuleLoader {
   private readonly modules = new Map<Type<unknown>, ModuleRef>();
   private readonly globalModules = new Set<ModuleRef>();
+  private readonly logger: ILogger;
+
+  constructor(logger: ILogger) {
+    this.logger = logger;
+  }
 
   /**
    * Load the entire module tree starting from the root module.
@@ -110,7 +116,12 @@ export class ModuleLoader {
       return existing;
     }
 
+    this.logger.log(`Scanning module: ${moduleClass.name}`, 'ModuleLoader');
     const moduleRef = new ModuleRef(moduleClass, metadata);
+    
+    // Inject logger into the container of this module
+    moduleRef.container.setLogger(this.logger);
+
     this.modules.set(moduleClass, moduleRef);
 
     // Track global modules
