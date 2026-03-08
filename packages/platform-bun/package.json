@@ -2,6 +2,15 @@
   "name": "@nemesisjs/platform-bun",
   "version": "0.1.0",
   "description": "NemesisJS Bun platform adapter - Bun.serve integration",
+  "author": "NemesisJS",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nemesisjs/nemesisjs.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

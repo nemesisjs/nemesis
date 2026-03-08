@@ -2,6 +2,15 @@
   "name": "@nemesisjs/core",
   "version": "0.1.0",
   "description": "NemesisJS core - DI container, module system, and application factory",
+  "author": "NemesisJS",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nemesisjs/nemesisjs.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

@@ -32,8 +32,6 @@
       "@nemesisjs/http/*": ["./packages/http/src/*"],
       "@nemesisjs/testing": ["./packages/testing/src"],
       "@nemesisjs/testing/*": ["./packages/testing/src/*"],
-      "@nemesisjs/cli": ["./packages/cli/src"],
-      "@nemesisjs/cli/*": ["./packages/cli/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
