@@ -8,15 +8,15 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@nemesisjs/common": "workspace:*",
-    "@nemesisjs/core": "workspace:*",
-    "@nemesisjs/http": "workspace:*",
-    "@nemesisjs/platform-bun": "workspace:*",
-    "@nemesisjs/validation": "workspace:*",
+    "@nemesis-js/common": "workspace:*",
+    "@nemesis-js/core": "workspace:*",
+    "@nemesis-js/http": "workspace:*",
+    "@nemesis-js/platform-bun": "workspace:*",
+    "@nemesis-js/validation": "workspace:*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@nemesisjs/testing": "workspace:*",
+    "@nemesis-js/testing": "workspace:*",
     "typescript": "^5.7.0",
     "@types/bun": "latest"
   }

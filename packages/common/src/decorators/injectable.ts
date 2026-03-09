@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @Injectable and @Inject decorators
+ * @nemesis-js/common - @Injectable and @Inject decorators
  *
  * These decorators work WITHOUT emitDecoratorMetadata.
  * @Injectable marks a class as available for DI.

@@ -2,13 +2,26 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "composite": true
+    "composite": true,
+    "rootDir": "./src"
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts"],
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts"
+  ],
   "references": [
-    { "path": "../common" },
-    { "path": "../core" },
-    { "path": "../platform-bun" }
+    {
+      "path": "../common"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../platform-bun"
+    }
   ]
 }

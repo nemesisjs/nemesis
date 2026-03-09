@@ -1,4 +1,4 @@
-import { createHttpApp } from '@nemesisjs/http';
+import { createHttpApp } from '@nemesis-js/http';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {

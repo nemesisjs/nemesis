@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body } from '@nemesisjs/common';
-import { UseSchema } from '@nemesisjs/validation';
-import type { RequestContext } from '@nemesisjs/http';
+import { Controller, Get, Post, Body } from '@nemesis-js/common';
+import { UseSchema } from '@nemesis-js/validation';
+import type { RequestContext } from '@nemesis-js/http';
 import { AppService } from './app.service.js';
 import { z } from 'zod';
 

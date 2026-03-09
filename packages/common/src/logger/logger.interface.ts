@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - ILogger
+ * @nemesis-js/common - ILogger
  *
  * Defines the contract for logging within the NemesisJS framework.
  */

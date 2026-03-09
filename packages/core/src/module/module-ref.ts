@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - ModuleRef
+ * @nemesis-js/core - ModuleRef
  *
  * Represents a loaded module with its metadata, container, and resolved providers.
  * Each module gets its own ModuleRef during the loading process.
@@ -10,7 +10,7 @@ import type {
   ModuleMetadata,
   Provider,
   Type,
-} from '@nemesisjs/common';
+} from '@nemesis-js/common';
 import { DIContainer } from '../container/container.js';
 
 /**

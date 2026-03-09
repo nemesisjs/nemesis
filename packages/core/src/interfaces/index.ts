@@ -1,8 +1,8 @@
 /**
- * @nemesisjs/core - Internal interfaces
+ * @nemesis-js/core - Internal interfaces
  */
 
-import type { ApplicationOptions, InjectionToken, PipeTransform } from '@nemesisjs/common';
+import type { ApplicationOptions, InjectionToken, PipeTransform } from '@nemesis-js/common';
 
 export interface NemesisApplicationInterface {
   listen(port: number, host?: string): Promise<void>;
@@ -12,7 +12,7 @@ export interface NemesisApplicationInterface {
   useGlobalPipes(...pipes: PipeTransform[]): this;
   getGlobalPipes(): PipeTransform[];
   getGlobalPrefix(): string;
-  getLogger(): import('@nemesisjs/common').ILogger;
+  getLogger(): import('@nemesis-js/common').ILogger;
 }
 
 export interface ServerAdapter {

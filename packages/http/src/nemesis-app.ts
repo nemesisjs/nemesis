@@ -1,12 +1,12 @@
 /**
- * @nemesisjs/http - NemesisApp
+ * @nemesis-js/http - NemesisApp
  *
  * Facade for building and running NemesisJS applications.
  * Provides a cleaner API surface and integrates HttpApplication logic.
  */
 
-import { Type } from '@nemesisjs/common';
-import { NemesisApplication } from '@nemesisjs/core';
+import { Type } from '@nemesis-js/common';
+import { NemesisApplication } from '@nemesis-js/core';
 import { createHttpApp, type HttpApplicationOptions } from './http-application.js';
 
 export class NemesisApp {
@@ -19,7 +19,7 @@ export class NemesisApp {
    *
    * @example
    * ```ts
-   * import { NemesisApp } from '@nemesisjs/http';
+   * import { NemesisApp } from '@nemesis-js/http';
    * import { AppModule } from './app.module';
    *
    * const app = await NemesisApp.createHttp(AppModule, { logger: true });

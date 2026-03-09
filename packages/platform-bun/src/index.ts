@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/platform-bun
+ * @nemesis-js/platform-bun
  *
  * Bun platform adapter for NemesisJS.
  * Provides the HTTP server (Bun.serve) and RequestContext.

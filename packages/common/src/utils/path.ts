@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Path utilities
+ * @nemesis-js/common - Path utilities
  *
  * Shared path normalization helpers used by controller, HTTP method,
  * and route-collector decorators.

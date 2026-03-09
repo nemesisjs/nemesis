@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - HTTP Method Decorators
+ * @nemesis-js/common - HTTP Method Decorators
  *
  * @Get, @Post, @Put, @Delete, @Patch, @Head, @Options
  * These decorators register route metadata on controller methods.

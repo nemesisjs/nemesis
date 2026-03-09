@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/testing
+ * @nemesis-js/testing
  *
  * Testing utilities for NemesisJS applications.
  */

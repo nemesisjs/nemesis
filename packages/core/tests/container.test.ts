@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'bun:test';
-import { Injectable, Inject } from '@nemesisjs/common';
+import { Injectable, Inject } from '@nemesis-js/common';
 import { DIContainer, CircularDependencyError, UnknownTokenError, MissingInjectionTokenError } from '../src/index';
 
-describe('@nemesisjs/core - DIContainer', () => {
+describe('@nemesis-js/core - DIContainer', () => {
   describe('register and resolve', () => {
     it('should register and resolve a class provider', () => {
       const container = new DIContainer();

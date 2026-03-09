@@ -1,12 +1,12 @@
 /**
- * @nemesisjs/platform-bun - BunHttpServer
+ * @nemesis-js/platform-bun - BunHttpServer
  *
  * Wraps Bun.serve to integrate with NemesisJS.
- * Implements the ServerAdapter interface from @nemesisjs/core.
+ * Implements the ServerAdapter interface from @nemesis-js/core.
  */
 
-import type { Server } from 'bun';
-import type { ServerAdapter } from '@nemesisjs/core';
+import type { Server, WebSocket } from 'bun';
+import type { ServerAdapter } from '@nemesis-js/core';
 
 export interface BunServerOptions {
   /** TLS certificate (optional) */
@@ -21,7 +21,7 @@ export interface BunServerOptions {
 }
 
 export class BunHttpServer implements ServerAdapter {
-  private server: Server | null = null;
+  private server: Server<WebSocket> | null = null;
   private requestHandler: ((request: Request) => Promise<Response>) | null = null;
   private options: BunServerOptions;
   private port: number = 3000;
@@ -105,7 +105,7 @@ export class BunHttpServer implements ServerAdapter {
   /**
    * Get the underlying Bun Server instance.
    */
-  getServer(): Server | null {
+  getServer(): Server<WebSocket> | null {
     return this.server;
   }
 }

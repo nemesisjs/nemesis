@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { createHttpApp } from '@nemesisjs/http';
-import { TestClient } from '@nemesisjs/testing';
+import { createHttpApp } from '@nemesis-js/http';
+import { TestClient } from '@nemesis-js/testing';
 import { AppModule } from '../src/app.module';
 
 describe('AppController', () => {

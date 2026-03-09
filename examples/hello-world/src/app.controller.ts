@@ -1,5 +1,5 @@
-import { Controller, Get } from '@nemesisjs/common';
-import type { RequestContext } from '@nemesisjs/http';
+import { Controller, Get } from '@nemesis-js/common';
+import type { RequestContext } from '@nemesis-js/http';
 import { AppService } from './app.service.js';
 
 @Controller('/')

@@ -1,5 +1,10 @@
 {
-  "name": "@nemesisjs/platform-bun",
+  "name": "@nemesis-js/platform-bun",
+  "files": [
+    "dist",
+    "src",
+    "tsconfig.json"
+  ],
   "version": "0.1.0",
   "description": "NemesisJS Bun platform adapter - Bun.serve integration",
   "author": "NemesisJS",
@@ -11,22 +16,23 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun && tsc -p tsconfig.json --emitDeclarationOnly",
     "test": "bun test"
   },
   "dependencies": {
-    "@nemesisjs/common": "workspace:*",
-    "@nemesisjs/core": "workspace:*"
+    "@nemesis-js/common": "workspace:*",
+    "@nemesis-js/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

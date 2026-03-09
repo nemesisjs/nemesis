@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @UsePipes decorator
+ * @nemesis-js/common - @UsePipes decorator
  *
  * Applies pipe classes to controllers or individual route handlers.
  * Pipes transform and validate handler parameters.

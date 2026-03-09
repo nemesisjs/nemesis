@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - ModuleLoader
+ * @nemesis-js/core - ModuleLoader
  *
  * Scans the module tree starting from the root module, resolves the dependency graph,
  * and registers all providers in their respective containers.
@@ -14,7 +14,7 @@ import {
   type Provider,
   type Type,
   type ILogger,
-} from '@nemesisjs/common';
+} from '@nemesis-js/common';
 import { ModuleNotFoundError } from '../errors/index.js';
 import { ModuleRef } from './module-ref.js';
 

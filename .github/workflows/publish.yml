@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════════════════════
-#  Publish: @nemesisjs/* monorepo packages
+#  Publish: @nemesis-js/* monorepo packages
 #
 #  What this does:
 #    1. Builds every package under packages/.

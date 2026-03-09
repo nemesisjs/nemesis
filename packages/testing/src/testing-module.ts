@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/testing - TestingModule
+ * @nemesis-js/testing - TestingModule
  *
  * Creates a test-friendly version of a NemesisJS module.
  * Supports overriding providers for mocking/stubbing.
@@ -25,18 +25,15 @@ import type {
   ModuleMetadata,
   Provider,
   Type,
-} from '@nemesisjs/common';
-import { Module } from '@nemesisjs/common';
-import { NemesisApplication, DIContainer, ModuleLoader } from '@nemesisjs/core';
-import type { ModuleRef } from '@nemesisjs/core';
+} from '@nemesis-js/common';
+import { Module } from '@nemesis-js/common';
+import { NemesisApplication } from '@nemesis-js/core';
 
 export class TestingModule {
   private readonly app: NemesisApplication;
-  private readonly modules: Map<Type<any>, ModuleRef>;
 
-  private constructor(app: NemesisApplication, modules: Map<Type<any>, ModuleRef>) {
+  private constructor(app: NemesisApplication) {
     this.app = app;
-    this.modules = modules;
   }
 
   /**
@@ -50,7 +47,7 @@ export class TestingModule {
     const app = new NemesisApplication(TestModule);
     await app.initialize();
 
-    return new TestingModule(app, app.getModules());
+    return new TestingModule(app);
   }
 
   /**

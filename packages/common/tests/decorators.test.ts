@@ -13,7 +13,7 @@ import {
   MetadataStorage,
 } from '../src/index';
 
-describe('@nemesisjs/common - Decorators', () => {
+describe('@nemesis-js/common - Decorators', () => {
   describe('@Injectable', () => {
     it('should mark a class as injectable', () => {
       @Injectable()

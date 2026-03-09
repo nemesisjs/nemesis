@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - ConsoleLogger
+ * @nemesis-js/common - ConsoleLogger
  *
  * A highly aesthetic, beautifully structured default logger implementation
  * adhering to the ILogger interface. Produces neatly formatted terminal output.

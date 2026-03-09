@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - LifecycleManager
+ * @nemesis-js/core - LifecycleManager
  *
  * Orchestrates lifecycle hook callbacks across all registered providers.
  * Hooks are called in order: onModuleInit → onApplicationBootstrap → (shutdown) → onApplicationShutdown.
@@ -10,7 +10,7 @@ import type {
   OnApplicationShutdown,
   OnModuleDestroy,
   OnModuleInit,
-} from '@nemesisjs/common';
+} from '@nemesis-js/common';
 import type { ModuleRef } from '../module/module-ref.js';
 
 /** All lifecycle hook method names managed by this class */

@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @Controller decorator
+ * @nemesis-js/common - @Controller decorator
  *
  * Marks a class as an HTTP controller with an optional route prefix.
  */

@@ -1,11 +1,11 @@
 /**
- * @nemesisjs/core - NemesisFactory
+ * @nemesis-js/core - NemesisFactory
  *
  * The entry point for creating NemesisJS applications.
  *
  * @example
  * ```ts
- * import { NemesisFactory } from '@nemesisjs/core';
+ * import { NemesisFactory } from '@nemesis-js/core';
  * import { AppModule } from './app.module';
  *
  * const app = await NemesisFactory.create(AppModule);
@@ -13,7 +13,7 @@
  * ```
  */
 
-import type { ApplicationOptions, Type } from '@nemesisjs/common';
+import type { ApplicationOptions, Type } from '@nemesis-js/common';
 import { NemesisApplication } from './nemesis-application.js';
 
 export class NemesisFactory {

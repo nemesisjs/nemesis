@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @UseGuards decorator
+ * @nemesis-js/common - @UseGuards decorator
  *
  * Applies guard classes to controllers or individual route handlers.
  * Guards determine if a request should be handled.

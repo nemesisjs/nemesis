@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @UseInterceptors decorator
+ * @nemesis-js/common - @UseInterceptors decorator
  *
  * Applies interceptor classes to controllers or individual route handlers.
  * Interceptors wrap handler execution for cross-cutting concerns.

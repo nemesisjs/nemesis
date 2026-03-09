@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core
+ * @nemesis-js/core
  *
  * Core framework module: DI container, module system, application factory, and lifecycle management.
  */

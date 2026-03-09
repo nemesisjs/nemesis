@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common
+ * @nemesis-js/common
  *
  * Core decorators, interfaces, exceptions, and constants for the NemesisJS framework.
  * Imports reflect-metadata once to enable emitDecoratorMetadata support across the framework.

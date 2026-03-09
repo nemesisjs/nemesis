@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/http - RouteCollector
+ * @nemesis-js/http - RouteCollector
  *
  * Scans loaded modules for controllers and their route decorators,
  * then registers them in the HttpRouter.
@@ -10,9 +10,9 @@ import {
   joinPaths,
   colorize,
   type Type,
-} from '@nemesisjs/common';
-import type { ModuleRef, NemesisApplicationInterface } from '@nemesisjs/core';
-import { RequestContext } from '@nemesisjs/platform-bun';
+} from '@nemesis-js/common';
+import type { ModuleRef, NemesisApplicationInterface } from '@nemesis-js/core';
+import { RequestContext } from '@nemesis-js/platform-bun';
 import { HttpRouter, type RouteHandler } from './router.js';
 import { PipelineExecutor } from '../pipeline/pipeline-executor.js';
 
@@ -121,7 +121,7 @@ export class RouteCollector {
   /**
    * Helper to colorize HTTP methods for better aesthetic logging.
    */
-  private getMethodColor(method: string): import('@nemesisjs/common').ColorCode {
+  private getMethodColor(method: string): import('@nemesis-js/common').ColorCode {
     switch (method.toUpperCase()) {
       case 'GET': return 'brightBlue';
       case 'POST': return 'brightGreen';

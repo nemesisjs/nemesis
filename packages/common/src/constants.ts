@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Constants
+ * @nemesis-js/common - Constants
  * All constants use `as const` instead of enums for better tree-shaking and type safety.
  */
 

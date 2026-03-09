@@ -1,4 +1,4 @@
-import { Injectable } from '@nemesisjs/common';
+import { Injectable } from '@nemesis-js/common';
 
 @Injectable()
 export class AppService {

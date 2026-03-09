@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/http - HTTP-specific errors
+ * @nemesis-js/http - HTTP-specific errors
  */
 
 export class RouteNotFoundError extends Error {

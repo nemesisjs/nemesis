@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param } from '@nemesisjs/common';
-import { NotFoundException } from '@nemesisjs/common';
-import type { RequestContext } from '@nemesisjs/http';
+import { Controller, Get, Post, Body, Param } from '@nemesis-js/common';
+import { NotFoundException } from '@nemesis-js/common';
+import type { RequestContext } from '@nemesis-js/http';
 import { UserService } from './user.service.js';
 
 @Controller('/users')

@@ -1,4 +1,4 @@
-import { Module } from '@nemesisjs/common';
+import { Module } from '@nemesis-js/common';
 import { UserController } from './user.controller.js';
 import { UserService } from './user.service.js';
 

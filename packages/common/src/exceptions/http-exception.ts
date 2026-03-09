@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - HTTP Exceptions
+ * @nemesis-js/common - HTTP Exceptions
  *
  * Base HttpException and common HTTP error classes.
  * All exceptions carry a status code and message for automatic HTTP response conversion.

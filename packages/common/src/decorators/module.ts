@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - @Module decorator
+ * @nemesis-js/common - @Module decorator
  *
  * Defines a NemesisJS module with its imports, controllers, providers, and exports.
  */

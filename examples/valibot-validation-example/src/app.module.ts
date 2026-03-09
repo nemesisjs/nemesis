@@ -1,5 +1,5 @@
-import { Module } from '@nemesisjs/common';
-import { ValidationModule } from '@nemesisjs/validation';
+import { Module } from '@nemesis-js/common';
+import { ValidationModule } from '@nemesis-js/validation';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 

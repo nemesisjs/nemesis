@@ -1,5 +1,5 @@
-import { createHttpApp } from '@nemesisjs/http';
-import { ValidationPipe } from '@nemesisjs/validation';
+import { createHttpApp } from '@nemesis-js/http';
+import { ValidationPipe } from '@nemesis-js/validation';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {

@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/platform-bun - RequestContext
+ * @nemesis-js/platform-bun - RequestContext
  *
  * Wraps the native Web API `Request` object with convenience methods
  * for accessing route params, query strings, body, and building responses.
@@ -8,7 +8,7 @@
  * @classdesc HTTP request/response context object passed to every route handler.
  */
 
-import type { HttpStatusCode } from '@nemesisjs/common';
+import type { HttpStatusCode } from '@nemesis-js/common';
 
 export class RequestContext {
   /** @private Underlying native Request object */

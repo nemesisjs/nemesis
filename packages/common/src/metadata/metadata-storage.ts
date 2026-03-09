@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - MetadataStorage
+ * @nemesis-js/common - MetadataStorage
  *
  * Central metadata store that replaces reflect-metadata.
  * Uses WeakMaps for class-level metadata and Maps for method/parameter metadata.

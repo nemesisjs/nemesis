@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - Error classes
+ * @nemesis-js/core - Error classes
  *
  * Framework-level errors for DI resolution, module loading, and lifecycle issues.
  */

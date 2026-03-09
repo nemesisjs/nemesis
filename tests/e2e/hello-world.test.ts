@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { createHttpApp } from '@nemesisjs/http';
-import { TestClient } from '@nemesisjs/testing';
+import { createHttpApp } from '@nemesis-js/http';
+import { TestClient } from '@nemesis-js/testing';
 import { AppModule } from '../../examples/hello-world/src/app.module.js';
 
 describe('Hello World E2E', () => {

@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - DIContainer
+ * @nemesis-js/core - DIContainer
  *
  * The Dependency Injection container. Manages provider registration, resolution,
  * lifecycle (singleton/transient), and circular dependency detection.
@@ -22,14 +22,14 @@ import {
   type ValueProvider,
   SCOPE,
   type Scope,
-} from '@nemesisjs/common';
+} from '@nemesis-js/common';
 import {
   CircularDependencyError,
   InvalidProviderError,
   MissingInjectionTokenError,
   UnknownTokenError,
 } from '../errors/index.js';
-import type { ILogger } from '@nemesisjs/common';
+import type { ILogger } from '@nemesis-js/common';
 
 // ─── Provider Record ─────────────────────────────────────────────────────────
 

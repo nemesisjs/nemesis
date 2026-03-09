@@ -1,12 +1,12 @@
 /**
- * @nemesisjs/http - HttpRouter
+ * @nemesis-js/http - HttpRouter
  *
  * Trie-based HTTP router for efficient route matching.
  * Supports static paths, dynamic parameters (:id), and wildcards (*).
  * O(depth) matching performance regardless of total route count.
  */
 
-import type { HttpMethod } from '@nemesisjs/common';
+import type { HttpMethod } from '@nemesis-js/common';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

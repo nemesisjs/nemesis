@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/testing - TestClient
+ * @nemesis-js/testing - TestClient
  *
  * HTTP test client that sends requests directly to the app's request handler
  * without requiring a real network connection. Perfect for E2E testing.
@@ -15,8 +15,7 @@
  * ```
  */
 
-import type { NemesisApplication } from '@nemesisjs/core';
-import type { BunHttpServer } from '@nemesisjs/platform-bun';
+import type { NemesisApplication } from '@nemesis-js/core';
 
 export class TestClient {
   private readonly baseUrl: string;

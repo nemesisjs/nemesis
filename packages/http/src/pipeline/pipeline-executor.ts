@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/http - PipelineExecutor
+ * @nemesis-js/http - PipelineExecutor
  *
  * Executes the full request lifecycle:
  * 1. Guards (canActivate)
@@ -21,9 +21,9 @@ import {
   ForbiddenException,
   InternalServerErrorException,
   PARAM_TYPE,
-} from '@nemesisjs/common';
-import type { ModuleRef } from '@nemesisjs/core';
-import type { RequestContext } from '@nemesisjs/platform-bun';
+} from '@nemesis-js/common';
+import type { ModuleRef } from '@nemesis-js/core';
+import type { RequestContext } from '@nemesis-js/platform-bun';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

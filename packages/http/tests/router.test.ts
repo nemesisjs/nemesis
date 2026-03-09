@@ -14,7 +14,7 @@ function makeEntry(method: string, path: string): RouteEntry {
   };
 }
 
-describe('@nemesisjs/http - HttpRouter', () => {
+describe('@nemesis-js/http - HttpRouter', () => {
   describe('static routes', () => {
     it('should match exact static paths', () => {
       const router = new HttpRouter();

@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Terminal Colors
+ * @nemesis-js/common - Terminal Colors
  *
  * Provides typed ANSI escape sequences for aesthetically pleasing terminal output.
  */

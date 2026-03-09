@@ -8,7 +8,7 @@ import {
   InternalServerErrorException,
 } from '../src/index';
 
-describe('@nemesisjs/common - Exceptions', () => {
+describe('@nemesis-js/common - Exceptions', () => {
   it('HttpException should carry status and message', () => {
     const err = new HttpException('Test error', 400);
     expect(err.getStatus()).toBe(400);

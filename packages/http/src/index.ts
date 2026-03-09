@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/http
+ * @nemesis-js/http
  *
  * HTTP server, routing, and request pipeline for NemesisJS.
  */
@@ -16,5 +16,5 @@ export { RouteCollector } from './router/route-collector.js';
 export { PipelineExecutor, type PipelineContext } from './pipeline/pipeline-executor.js';
 
 // ─── Re-exports from platform-bun for convenience ────────────────────────────
-export { RequestContext } from '@nemesisjs/platform-bun';
-export { BunHttpServer } from '@nemesisjs/platform-bun';
+export { RequestContext } from '@nemesis-js/platform-bun';
+export { BunHttpServer } from '@nemesis-js/platform-bun';

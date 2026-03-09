@@ -1,14 +1,14 @@
 /**
- * @nemesisjs/http - HttpApplication
+ * @nemesis-js/http - HttpApplication
  *
  * Integrates the HTTP server, router, and pipeline with NemesisApplication.
- * This is the "glue" that connects @nemesisjs/core with @nemesisjs/platform-bun.
+ * This is the "glue" that connects @nemesis-js/core with @nemesis-js/platform-bun.
  */
 
-import type { ApplicationOptions, CorsOptions, Type } from '@nemesisjs/common';
-import { NotFoundException, MethodNotAllowedException } from '@nemesisjs/common';
-import { NemesisApplication } from '@nemesisjs/core';
-import { BunHttpServer, type BunServerOptions } from '@nemesisjs/platform-bun';
+import type { ApplicationOptions, CorsOptions, Type } from '@nemesis-js/common';
+import { NotFoundException, MethodNotAllowedException } from '@nemesis-js/common';
+import { NemesisApplication } from '@nemesis-js/core';
+import { BunHttpServer, type BunServerOptions } from '@nemesis-js/platform-bun';
 import { HttpRouter } from './router/router.js';
 import { RouteCollector } from './router/route-collector.js';
 import { PipelineExecutor } from './pipeline/pipeline-executor.js';
@@ -24,7 +24,7 @@ export interface HttpApplicationOptions extends ApplicationOptions {
  *
  * @example
  * ```ts
- * import { createHttpApp } from '@nemesisjs/http';
+ * import { createHttpApp } from '@nemesis-js/http';
  * import { AppModule } from './app.module';
  *
  * const app = await createHttpApp(AppModule);

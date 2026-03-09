@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Parameter Decorators
+ * @nemesis-js/common - Parameter Decorators
  *
  * @Body, @Query, @Param, @Headers, @Req
  * These decorators declare how controller method parameters are resolved from the request.

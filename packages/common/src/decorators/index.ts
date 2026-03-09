@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Decorators barrel export
+ * @nemesis-js/common - Decorators barrel export
  */
 
 export { Injectable, Inject } from './injectable.js';

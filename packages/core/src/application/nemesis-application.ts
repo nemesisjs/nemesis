@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/core - NemesisApplication
+ * @nemesis-js/core - NemesisApplication
  *
  * The main application class. Created by NemesisFactory.create().
  * Holds the DI container, module graph, HTTP server adapter, and lifecycle manager.
@@ -11,8 +11,8 @@ import type {
   Type,
   ILogger,
   PipeTransform,
-} from '@nemesisjs/common';
-import { ConsoleLogger } from '@nemesisjs/common';
+} from '@nemesis-js/common';
+import { ConsoleLogger } from '@nemesis-js/common';
 
 import { LifecycleManager } from '../lifecycle/lifecycle-manager.js';
 import { ModuleLoader } from '../module/module-loader.js';
@@ -106,7 +106,7 @@ export class NemesisApplication implements NemesisApplicationInterface {
 
     if (!this.adapter) {
       throw new Error(
-        'No server adapter configured. Use @nemesisjs/platform-bun to create an HTTP server.',
+        'No server adapter configured. Use @nemesis-js/platform-bun to create an HTTP server.',
       );
     }
 

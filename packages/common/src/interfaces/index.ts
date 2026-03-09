@@ -1,5 +1,5 @@
 /**
- * @nemesisjs/common - Core Interfaces
+ * @nemesis-js/common - Core Interfaces
  *
  * All type definitions that form the contract between NemesisJS packages.
  */
