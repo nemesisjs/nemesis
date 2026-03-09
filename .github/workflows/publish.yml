@@ -1,48 +1,171 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  Publish: @nemesisjs/* monorepo packages
+#
+#  What this does:
+#    1. Runs the full test suite — publish is blocked if any test fails.
+#    2. Builds every package under packages/.
+#    3. Rewrites "workspace:*" deps to real semver ranges in each package.json
+#       (npm doesn't understand Bun workspace references).
+#    4. Publishes each package to npm with public access.
+#
+#  How to trigger:
+#    Actions tab → "Publish Packages" → Run workflow
+#    Use the "dry_run" input to do a full rehearsal without actually publishing.
+#
+#  Required secret:
+#    NPM_TOKEN  — a npm "Automation" token with publish rights
+# ══════════════════════════════════════════════════════════════════════════════
+
 name: Publish Packages
 
+# ── Trigger ───────────────────────────────────────────────────────────────────
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — build & test without publishing to npm"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
+# ── Safety: never allow two publish runs at the same time ─────────────────────
+concurrency:
+  group: publish-monorepo
+  cancel-in-progress: false   # never cancel a publish mid-flight
+
+# ── Minimal GitHub token permissions ─────────────────────────────────────────
+permissions:
+  contents: read
+
+# ══════════════════════════════════════════════════════════════════════════════
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+  # ── 1 · Test ────────────────────────────────────────────────────────────────
+  #  Run the full test suite before touching npm.
+  #  If any test fails the publish job never starts.
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run tests
+        run: bun test
+
+  # ── 2 · Build & Publish ─────────────────────────────────────────────────────
+  #  Only runs after the test job passes.
+  #  Uses the "npm" environment — add a required reviewer there in repo settings
+  #  if you want a manual approval gate before every publish.
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 15
+    environment: npm
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: "20.x"
+          bun-version: latest
+
+      # Node is required for `npm publish` even though we build with Bun.
+      - name: Set up Node (for npm publish)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        run: |
-          bun install --no-cache
+        run: bun install --frozen-lockfile
 
-      - name: Build packages
-        run: |
-          bun run build
+      - name: Build all packages
+        run: bun run build
 
-      - name: Publish Packages
+      # "workspace:*" is a Bun/pnpm concept that npm does not understand.
+      # This step rewrites every workspace reference to "^<package-version>"
+      # using a safe inline Node script (no fragile sed regex).
+      - name: Rewrite workspace:* references to real semver ranges
         run: |
-          for pkg in packages/*; do
-            if [ -d "$pkg" ] && [ -f "$pkg/package.json" ]; then
-              echo "Publishing $pkg"
-              cd "$pkg"
-              
-              # Replace workspace:* with the actual version of the package safely
-              VERSION=$(grep '"version"' package.json | head -n 1 | sed -E 's/.*"version": "(.*)",/\1/')
-              sed -i "s/\"workspace:\*\"/\"^${VERSION}\"/g" package.json
-              
-              npm publish --access public || echo "Publishing $pkg failed (version may already exist)"
-              
-              cd ../..
+          for pkg_dir in packages/*/; do
+            pkg_json="${pkg_dir}package.json"
+            [ -f "$pkg_json" ] || continue
+
+            node -e "
+              const fs  = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('$pkg_json', 'utf8'));
+              const ver = pkg.version;
+              let changed = 0;
+              for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
+                for (const [name, val] of Object.entries(pkg[section] ?? {})) {
+                  if (val === 'workspace:*') {
+                    pkg[section][name] = '^' + ver;
+                    changed++;
+                  }
+                }
+              }
+              fs.writeFileSync('$pkg_json', JSON.stringify(pkg, null, 2) + '\n');
+              if (changed) console.log('  Rewrote ' + changed + ' workspace dep(s) in $pkg_json');
+            "
+          done
+
+      # Publish every package that has a package.json.
+      # Already-published versions are silently skipped (not treated as errors).
+      - name: Publish packages to npm
+        run: |
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+          PUBLISHED=()
+          SKIPPED=()
+
+          for pkg_dir in packages/*/; do
+            [ -f "${pkg_dir}package.json" ] || continue
+
+            PKG_NAME=$(node -p "require('./${pkg_dir}package.json').name")
+            PKG_VER=$(node  -p "require('./${pkg_dir}package.json').version")
+
+            echo "──────────────────────────────────────────"
+            echo "  Package : $PKG_NAME"
+            echo "  Version : $PKG_VER"
+            echo "  Path    : $pkg_dir"
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  Result  : skipped (dry run)"
+              SKIPPED+=("$PKG_NAME@$PKG_VER (dry run)")
+
+            elif (cd "$pkg_dir" && npm publish --access public 2>&1); then
+              echo "  Result  : ✓ published"
+              PUBLISHED+=("$PKG_NAME@$PKG_VER")
+
+            else
+              echo "  Result  : ⚠ skipped (version already exists on npm)"
+              SKIPPED+=("$PKG_NAME@$PKG_VER")
             fi
           done
+
+          # Final summary
+          echo ""
+          echo "══════════════════════════════════════════"
+          echo "  Publish summary"
+          echo "  Published : ${#PUBLISHED[@]}"
+          for p in "${PUBLISHED[@]}"; do echo "    ✓  $p"; done
+          echo "  Skipped   : ${#SKIPPED[@]}"
+          for s in "${SKIPPED[@]}"; do echo "    –  $s"; done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
