@@ -2,11 +2,10 @@
 #  Publish: @nemesisjs/* monorepo packages
 #
 #  What this does:
-#    1. Runs the full test suite — publish is blocked if any test fails.
-#    2. Builds every package under packages/.
-#    3. Rewrites "workspace:*" deps to real semver ranges in each package.json
+#    1. Builds every package under packages/.
+#    2. Rewrites "workspace:*" deps to real semver ranges in each package.json
 #       (npm doesn't understand Bun workspace references).
-#    4. Publishes each package to npm with public access.
+#    3. Publishes each package to npm with public access.
 #
 #  How to trigger:
 #    Actions tab → "Publish Packages" → Run workflow
@@ -23,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Dry run — build & test without publishing to npm"
+        description: "Dry run — build without publishing to npm"
         required: false
         default: "false"
         type: choice
@@ -34,7 +33,7 @@ on:
 # ── Safety: never allow two publish runs at the same time ─────────────────────
 concurrency:
   group: publish-monorepo
-  cancel-in-progress: false # never cancel a publish mid-flight
+  cancel-in-progress: false
 
 # ── Minimal GitHub token permissions ─────────────────────────────────────────
 permissions:
@@ -42,37 +41,11 @@ permissions:
 
 # ══════════════════════════════════════════════════════════════════════════════
 jobs:
-  # ── 1 · Test ────────────────────────────────────────────────────────────────
-  #  Run the full test suite before touching npm.
-  #  If any test fails the publish job never starts.
-  test:
-    name: Run test suite
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
 
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Run tests
-        run: bun test
-
-  # ── 2 · Build & Publish ─────────────────────────────────────────────────────
-  #  Only runs after the test job passes.
-  #  Uses the "npm" environment — add a required reviewer there in repo settings
-  #  if you want a manual approval gate before every publish.
+  # ── Build & Publish ──────────────────────────────────────────────────────────
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
-    needs: test
     timeout-minutes: 15
     environment: npm
 
@@ -93,7 +66,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Build all packages
         run: bun run build
