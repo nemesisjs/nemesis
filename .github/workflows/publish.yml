@@ -34,7 +34,7 @@ on:
 # ── Safety: never allow two publish runs at the same time ─────────────────────
 concurrency:
   group: publish-monorepo
-  cancel-in-progress: false   # never cancel a publish mid-flight
+  cancel-in-progress: false # never cancel a publish mid-flight
 
 # ── Minimal GitHub token permissions ─────────────────────────────────────────
 permissions:
@@ -42,7 +42,6 @@ permissions:
 
 # ══════════════════════════════════════════════════════════════════════════════
 jobs:
-
   # ── 1 · Test ────────────────────────────────────────────────────────────────
   #  Run the full test suite before touching npm.
   #  If any test fails the publish job never starts.
@@ -94,7 +93,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Build all packages
         run: bun run build
