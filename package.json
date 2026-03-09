@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "workspaces": [
-    "packages/*",
-    "examples/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "bun run build:common && bun run build:core && bun run build:platform-bun && bun run build:http && bun run build:testing",
